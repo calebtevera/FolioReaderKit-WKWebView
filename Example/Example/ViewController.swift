@@ -30,18 +30,29 @@ class ViewController: UIViewController {
         config.shouldHideNavigationOnTap = epub.shouldHideNavigationOnTap
         config.scrollDirection = epub.scrollDirection
 
-        // See more at FolioReaderConfig.swift
-        config.canChangeFontStyle = false
-//        config.enableTTS = false
-//        config.displayTitle = true
-//        config.allowSharing = false
-//        config.tintColor = UIColor.blueColor()
-//        config.toolBarTintColor = UIColor.redColor()
-//        config.toolBarBackgroundColor = UIColor.purpleColor()
-//        config.menuTextColor = UIColor.brownColor()
-//        config.menuBackgroundColor = UIColor.lightGrayColor()
-//        config.hidePageIndicator = true
-//        config.realmConfiguration = Realm.Configuration(fileURL: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("highlights.realm"))
+        // Enable font style changes so users can select different fonts
+        config.canChangeFontStyle = true
+
+        // Enable dark/light mode switching
+        config.canChangeScrollDirection = true
+
+        // Display title in navigation bar
+        config.displayTitle = true
+
+        // Enable text-to-speech
+        config.enableTTS = true
+        // Allow sharing
+        config.allowSharing = true
+        // Configure colors for better dark/light mode experience
+        config.tintColor = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50
+        config.menuBackgroundColor = UIColor.white
+        config.menuTextColor = UIColor(red: 0.463, green: 0.463, blue: 0.463, alpha: 1.0) // #767676
+        config.menuTextColorSelected = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50
+
+        // Dark mode colors
+        config.nightModeBackground = UIColor(red: 0.075, green: 0.075, blue: 0.075, alpha: 1.0) // #131313
+        config.nightModeMenuBackground = UIColor(red: 0.118, green: 0.118, blue: 0.118, alpha: 1.0) // #1E1E1E
+        config.nightModeSeparatorColor = UIColor(white: 0.5, alpha: 0.2)
 
         // Custom sharing quote background
         config.quoteCustomBackgrounds = []
