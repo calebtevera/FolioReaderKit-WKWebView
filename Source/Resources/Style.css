@@ -78,7 +78,12 @@ ol ol, ol ul, ul ol, ul ul {
 /* Links */
 a { -webkit-touch-callout: none; } /* Disable link callback */
 * { -webkit-user-select: text; }
-img { -webkit-user-select: none; }
+img {
+    -webkit-user-select: none;
+    max-width: 100% !important;
+    height: auto !important;
+    display: inline-block !important;
+}
 p {
     margin: 1.3em 0 1.5em 0;
     line-height: 1.40em !important;
@@ -131,7 +136,7 @@ a, h1, h2, h3, h4, h5, h6 {
 
 /* Begin Ted */
 img, svg, audio, video {
-    max-height: 95% !important;
+    max-height: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box;
     object-fit: contain;
@@ -241,35 +246,41 @@ html.nightMode .highlight-underline {border-bottom: 2px solid rgba(240, 40, 20, 
 .lora, .lora p, .lora span, .lora div { font-family: "Lora", serif !important; }
 .raleway, .raleway p, .raleway span, .raleway div { font-family: "Raleway", sans-serif !important; }
 
-html.textSizeOne, .textSizeOne body { font-size: 1.4em !important; }
-html.textSizeTwo, .textSizeTwo body { font-size: 1.6em !important; }
-html.textSizeThree, .textSizeThree body { font-size: 1.8em !important; }
-html.textSizeFour, .textSizeFour body { font-size: 2.0em !important; }
-html.textSizeFive, .textSizeFive body { font-size: 2.4em !important; }
+html.textSizeOne, .textSizeOne body { font-size: 1.3em !important; }
+html.textSizeTwo, .textSizeTwo body { font-size: 1.4em !important; }
+html.textSizeThree, .textSizeThree body { font-size: 1.5em !important; }
+html.textSizeFour, .textSizeFour body { font-size: 1.6em !important; }
+html.textSizeFive, .textSizeFive body { font-size: 1.7em !important; }
 
 h1 {
-    font-size: 2.5em;
+    font-size: 1.5em;
     line-height: 1.2;
+    text-align: center !important;
 }
 h2 {
-    font-size: 1.8em;
+    font-size: 1.4em;
     line-height: 1.2;
+    text-align: center !important;
 }
 h3 {
-    font-size: 1.17em;
+    font-size: 1.3em;
     line-height: 1.2;
+    text-align: center !important;
 }
 h4 {
-    font-size: 1em;
+    font-size: 1.1em;
     line-height: 1.2;
+    text-align: center !important;
 }
 h5 {
-    font-size: 0.83em;
+    font-size: 1em;
     line-height: 1.2;
+    text-align: center !important;
 }
 h6 {
-    font-size: 0.67em;
+    font-size: 1.0em;
     line-height: 1.2;
+    text-align: center !important;
 }
 body {
     word-break: break-word !important;
@@ -278,7 +289,7 @@ body {
 }
 p, span, div {
     font-size: 1em;
-    line-height: 1.5 !important;
+    line-height: 1.6 !important;
 }
 @media only screen and (min-device-width: 600px) {
     div {
