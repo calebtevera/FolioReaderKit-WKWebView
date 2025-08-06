@@ -1,0 +1,32 @@
+{
+  "pins" : [
+    {
+      "identity" : "aexml",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tadija/AEXML.git",
+      "state" : {
+        "revision" : "db806756c989760b35108146381535aec231092b",
+        "version" : "4.7.0"
+      }
+    },
+    {
+      "identity" : "fontblaster",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ArtSabintsev/FontBlaster.git",
+      "state" : {
+        "revision" : "09fffe9cf20293fce81ce7154b46f8e60291baa8",
+        "version" : "5.3.0"
+      }
+    },
+    {
+      "identity" : "ziparchive",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ZipArchive/ZipArchive.git",
+      "state" : {
+        "revision" : "df35718ea19a94e015b91dc4881dee028ce4cdba",
+        "version" : "2.6.0"
+      }
+    }
+  ],
+  "version" : 2
+}
