@@ -57,9 +57,13 @@ class FolioReaderAddHighlightNote: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
+        // Make the view more compact by limiting the container size
+        let maxHeight: CGFloat = 350 // Total height for highlight + text view + margins
+        let containerHeight = min(maxHeight, view.bounds.height * 0.6) // Max 60% of screen
+
         scrollView.frame = view.bounds
-        containerView.frame = view.bounds
-        scrollView.contentSize = view.bounds.size
+        containerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: containerHeight)
+        scrollView.contentSize = CGSize(width: view.bounds.width, height: containerHeight)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -107,8 +111,9 @@ class FolioReaderAddHighlightNote: UIViewController {
         let leftConstraint = NSLayoutConstraint(item: textView!, attribute: .left, relatedBy: .equal, toItem: containerView, attribute: .left, multiplier: 1.0, constant: 20)
         let rightConstraint = NSLayoutConstraint(item: textView!, attribute: .right, relatedBy: .equal, toItem: containerView, attribute: .right, multiplier: 1.0, constant: -20)
         let topConstraint = NSLayoutConstraint(item: textView, attribute: .top, relatedBy: .equal, toItem: containerView, attribute: .top, multiplier: 1, constant: 100)
-        let heiConstraint = NSLayoutConstraint(item: textView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .height, multiplier: 1, constant: view.frame.height - 100)
-        
+        // Reduce text view height to make the note card more compact
+        let heiConstraint = NSLayoutConstraint(item: textView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .height, multiplier: 1, constant: 200)
+
         containerView.addConstraints([leftConstraint, rightConstraint, topConstraint, heiConstraint])
     }
     
@@ -149,13 +154,23 @@ class FolioReaderAddHighlightNote: UIViewController {
     
     @objc private func keyboardWillShow(notification: NSNotification){
         //give room at the bottom of the scroll view, so it doesn't cover up anything the user needs to tap
-        var userInfo = notification.userInfo!
-        var keyboardFrame:CGRect = (userInfo[UIResponder.keyboardFrameBeginUserInfoKey] as! NSValue).cgRectValue
+        guard let userInfo = notification.userInfo,
+              let keyboardFrameValue = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else { return }
+
+        var keyboardFrame = keyboardFrameValue.cgRectValue
         keyboardFrame = self.view.convert(keyboardFrame, from: nil)
         
-        var contentInset:UIEdgeInsets = self.scrollView.contentInset
+        var contentInset = self.scrollView.contentInset
         contentInset.bottom = keyboardFrame.size.height
         self.scrollView.contentInset = contentInset
+        
+        // Scroll to make text view visible
+        let textViewFrame = self.view.convert(textView.frame, from: containerView)
+        let visibleRect = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height - keyboardFrame.height)
+        
+        if !visibleRect.contains(textViewFrame) {
+            scrollView.scrollRectToVisible(textViewFrame, animated: true)
+        }
     }
     
     @objc private func keyboardWillHide(notification:NSNotification){
@@ -164,21 +179,32 @@ class FolioReaderAddHighlightNote: UIViewController {
     }
     
     @objc private func saveNote(_ sender: UIBarButtonItem) {
-        if !textView.text.isEmpty {
+        do {
             if isEditHighlight {
-                let realm = try! Realm(configuration: readerConfig.realmConfiguration)
-                realm.beginWrite()
-                highlight.noteForHighlight = textView.text
+                let realm = try Realm(configuration: readerConfig.realmConfiguration)
+                try realm.write {
+                    highlight.noteForHighlight = textView.text
+                }
                 highlightSaved = true
-                try! realm.commitWrite()
             } else {
                 highlight.noteForHighlight = textView.text
                 highlight.persist(withConfiguration: readerConfig)
                 highlightSaved = true
             }
+
+            // Notify that the note was saved successfully
+            NotificationCenter.default.post(name: Notification.Name("HighlightNoteSaved"), object: highlight)
+
+        } catch let error {
+            print("Error saving note: \(error)")
+            // Show an alert to the user
+            let alert = UIAlertController(title: "Error", message: "Failed to save note. Please try again.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
         }
         
-        dismiss()
+        dismiss(animated: true)
     }
 }
 

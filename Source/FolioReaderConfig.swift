@@ -136,16 +136,16 @@ open class FolioReaderConfig: NSObject {
     open var canChangeScrollDirection = true
 
     /// Should hide navigation bar on user tap
-    open var shouldHideNavigationOnTap = true
+    open var shouldHideNavigationOnTap = false
 
     /// Allow sharing option, if `false` will hide all sharing icons and options
     open var allowSharing = true
 
     /// Enable TTS (Text To Speech)
-    open var enableTTS = true
+    open var enableTTS = false
     
     /// Display book title in navbar
-    open var displayTitle = false
+    open var displayTitle = true
 
     /// Hide the page indicator
     open var hidePageIndicator = false
@@ -159,8 +159,7 @@ open class FolioReaderConfig: NSObject {
     // MARK: Quote image share
 
     /// Custom Quote logo
-    open var quoteCustomLogoImage       = UIImage(readerImageNamed: "icon-logo")
-
+    open var quoteCustomLogoImage       = UIImage(readerImageNamed: "ztf-logo")
     /// Add custom backgrounds and font colors to Quote Images
     open var quoteCustomBackgrounds     = [QuoteImage]()
 

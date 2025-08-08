@@ -144,8 +144,13 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         let background = folioReader.isNight(self.readerConfig.nightModeBackground, UIColor.white)
         view.backgroundColor = background
 
-        // CollectionView
-        collectionView = UICollectionView(frame: screenBounds, collectionViewLayout: collectionViewLayout)
+        // CollectionView with top margin
+        let topMargin: CGFloat = 0 // Adjust this value to increase/decrease space above book
+        let adjustedFrame = CGRect(x: screenBounds.origin.x,
+                                 y: screenBounds.origin.y + topMargin,
+                                 width: screenBounds.width,
+                                 height: screenBounds.height - topMargin)
+        collectionView = UICollectionView(frame: adjustedFrame, collectionViewLayout: collectionViewLayout)
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -274,9 +279,9 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 
         var rightBarIcons = [UIBarButtonItem]()
 
-        if (self.readerConfig.allowSharing == true) {
-            rightBarIcons.append(UIBarButtonItem(image: shareIcon, style: .plain, target: self, action:#selector(shareChapter(_:))))
-        }
+        // if (self.readerConfig.allowSharing == true) {
+        //     rightBarIcons.append(UIBarButtonItem(image: shareIcon, style: .plain, target: self, action:#selector(shareChapter(_:))))
+        // }
 
         if self.book.hasAudio || self.readerConfig.enableTTS {
             rightBarIcons.append(UIBarButtonItem(image: audioIcon, style: .plain, target: self, action:#selector(presentPlayerMenu(_:))))

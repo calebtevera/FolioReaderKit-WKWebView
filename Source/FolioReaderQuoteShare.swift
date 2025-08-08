@@ -262,15 +262,15 @@ class FolioReaderQuoteShare: UIViewController {
         var shareItems = [AnyObject]()
 
         // Get book title
-        if let title = self.book.title {
-            bookTitle = title
-            subject += " “\(title)”"
-        }
+        // if let title = self.book.title {
+        //     bookTitle = title
+        //     subject += " “\(title)”"
+        // }
 
         // Get author name
-        if let author = self.book.metadata.creators.first {
-            authorName = author.name
-        }
+        // if let author = self.book.metadata.creators.first {
+        //     authorName = author.name
+        // }
 
         text = "\(bookTitle) \n\(self.readerConfig.localizedShareBy) \(authorName)"
 
