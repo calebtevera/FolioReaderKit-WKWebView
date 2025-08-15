@@ -2,7 +2,8 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "icon-logo.pdf"
+      "filename" : "ztf-logo.png",
+      "scale" : "1x"
     }
   ],
   "info" : {
