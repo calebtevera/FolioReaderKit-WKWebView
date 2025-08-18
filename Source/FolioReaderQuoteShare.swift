@@ -126,7 +126,7 @@ class FolioReaderQuoteShare: UIViewController {
         filterImage.addSubview(authorLabel)
 
         let logoImage = self.readerConfig.quoteCustomLogoImage
-        let logoHeight = logoImage?.size.height ?? 0
+        let logoHeight = logoImage.size.height
         logoImageView = UIImageView(image: logoImage)
         logoImageView.contentMode = .center
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
