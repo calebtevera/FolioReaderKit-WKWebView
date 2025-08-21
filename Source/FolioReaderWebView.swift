@@ -19,6 +19,10 @@ open class FolioReaderWebView: WKWebView {
 
     fileprivate weak var readerContainer: FolioReaderContainer?
 
+    // Add properties to track content size for vertical scroll
+    private var documentContentHeight: CGFloat = 0
+    private var isContentSizeObserverSetup = false
+
     fileprivate var readerConfig: FolioReaderConfig {
         guard let readerContainer = readerContainer else { return FolioReaderConfig() }
         return readerContainer.readerConfig
@@ -44,11 +48,91 @@ open class FolioReaderWebView: WKWebView {
             // Fallback on earlier versions
             assertionFailure("unsupported iOS version")
         }
+
         super.init(frame: frame, configuration: configuration)
+
+        // Setup content size handler for vertical scroll mode
+        setupContentSizeHandler()
     }
 
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Content Size Handling for Vertical Scroll
+
+    private func setupContentSizeHandler() {
+        // Setup content size handler for all scroll modes
+        configuration.userContentController.add(self, name: "contentSizeHandler")
+        isContentSizeObserverSetup = true
+    }
+
+    func updateContentSize(dimensions: [String: Any]) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            // Extract dimensions from JavaScript
+            guard let width = dimensions["width"] as? Double,
+                  let height = dimensions["height"] as? Double else { return }
+
+            let contentWidth = CGFloat(width)
+            let contentHeight = CGFloat(height)
+
+            // Update the stored content dimensions
+            self.documentContentHeight = contentHeight
+
+            // Update the scroll view content size based on scroll direction
+            let currentContentSize = self.scrollView.contentSize
+            var newContentSize: CGSize
+
+            switch self.readerConfig.scrollDirection {
+            case .vertical, .defaultVertical:
+                // For vertical scroll, height is dynamic, width matches view
+                newContentSize = CGSize(width: self.bounds.width, height: contentHeight)
+
+            case .horizontal:
+                // For horizontal scroll, width is dynamic, height matches view
+                newContentSize = CGSize(width: contentWidth, height: self.bounds.height)
+
+            case .horizontalWithVerticalContent:
+                // For horizontal with vertical content, both dimensions can be dynamic
+                newContentSize = CGSize(width: contentWidth, height: contentHeight)
+            }
+
+            if currentContentSize != newContentSize {
+                self.scrollView.contentSize = newContentSize
+
+                // Notify about content size changes
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("FolioReaderContentSizeChanged"),
+                    object: self,
+                    userInfo: [
+                        "contentWidth": contentWidth,
+                        "contentHeight": contentHeight,
+                        "scrollDirection": self.readerConfig.scrollDirection.rawValue
+                    ]
+                )
+            }
+        }
+    }
+
+    func refreshContentSize() {
+        guard isContentSizeObserverSetup else { return }
+
+        // Request updated content dimensions from JavaScript
+        js("getContentDimensions()") { [weak self] result in
+            guard let self = self,
+                  let result = result,
+                  let data = result.data(using: .utf8) else { return }
+
+            do {
+                if let dimensions = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    self.updateContentSize(dimensions: dimensions)
+                }
+            } catch {
+                print("Error parsing content dimensions: \(error)")
+            }
+        }
     }
 
     // MARK: - UIMenuController
@@ -424,6 +508,17 @@ open class FolioReaderWebView: WKWebView {
             //paginationBreakingMode = .page
             scrollView.bounces = false
             break
+        }
+    }
+}
+
+// MARK: - WKScriptMessageHandler
+extension FolioReaderWebView: WKScriptMessageHandler {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "contentSizeHandler" {
+            if let messageBody = message.body as? [String: Any] {
+                updateContentSize(dimensions: messageBody)
+            }
         }
     }
 }

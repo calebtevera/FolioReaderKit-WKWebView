@@ -101,6 +101,27 @@ class ScrollScrubber: NSObject, UIScrollViewDelegate {
         slider.addTarget(self, action: #selector(ScrollScrubber.sliderTouchDown(_:)), for: .touchDown)
         slider.addTarget(self, action: #selector(ScrollScrubber.sliderTouchUp(_:)), for: .touchUpInside)
         slider.addTarget(self, action: #selector(ScrollScrubber.sliderTouchUp(_:)), for: .touchUpOutside)
+
+        // Listen for content size change notifications
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(contentSizeChanged(_:)),
+            name: NSNotification.Name("FolioReaderContentSizeChanged"),
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func contentSizeChanged(_ notification: Notification) {
+        // Update slider when content size changes for any scroll mode
+        if visible && !usingSlider {
+            DispatchQueue.main.async { [weak self] in
+                self?.setSliderVal()
+            }
+        }
     }
 
     func reloadColors() {
@@ -190,9 +211,11 @@ class ScrollScrubber: NSObject, UIScrollViewDelegate {
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Handle both vertical and horizontal scroll modes
         guard (readerConfig.scrollDirection == .vertical ||
             readerConfig.scrollDirection == .defaultVertical ||
-            readerConfig.scrollDirection == .horizontalWithVerticalContent) else {
+            readerConfig.scrollDirection == .horizontalWithVerticalContent ||
+            readerConfig.scrollDirection == .horizontal) else {
                 return
         }
 
@@ -251,7 +274,28 @@ class ScrollScrubber: NSObject, UIScrollViewDelegate {
                 return 0
         }
 
-        return webView.scrollView.contentSize.height - pageHeight + 44
+        // Calculate scrollable area based on scroll direction
+        switch readerConfig.scrollDirection {
+        case .vertical, .defaultVertical:
+            // For vertical scroll, use content height minus viewport height
+            let contentHeight = webView.scrollView.contentSize.height
+            let scrollableHeight = max(0, contentHeight - pageHeight)
+            return scrollableHeight
+
+        case .horizontal:
+            // For horizontal scroll, use content width minus viewport width
+            let contentWidth = webView.scrollView.contentSize.width
+            let viewportWidth = webView.bounds.width
+            let scrollableWidth = max(0, contentWidth - viewportWidth)
+            return scrollableWidth
+
+        case .horizontalWithVerticalContent:
+            // For horizontal with vertical content, use the appropriate dimension
+            // This mode typically uses height for slider tracking
+            let contentHeight = webView.scrollView.contentSize.height
+            let scrollableHeight = max(0, contentHeight - pageHeight)
+            return scrollableHeight
+        }
     }
     
     fileprivate func scrollTop() -> CGFloat {

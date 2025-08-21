@@ -31,6 +31,98 @@ function getHTML() {
     return document.documentElement.outerHTML;
 }
 
+// Get document content height for vertical scroll mode
+function getDocumentHeight() {
+    return Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+    );
+}
+
+// Get document content width for horizontal scroll mode
+function getDocumentWidth() {
+    return Math.max(
+        document.body.scrollWidth,
+        document.body.offsetWidth,
+        document.documentElement.clientWidth,
+        document.documentElement.scrollWidth,
+        document.documentElement.offsetWidth
+    );
+}
+
+// Get current scroll position for both modes
+function getScrollTop() {
+    return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+}
+
+function getScrollLeft() {
+    return window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+}
+
+// Get content dimensions for both scroll modes
+function getContentDimensions() {
+    return {
+        width: getDocumentWidth(),
+        height: getDocumentHeight(),
+        scrollTop: getScrollTop(),
+        scrollLeft: getScrollLeft()
+    };
+}
+
+// Notify native code of content size changes for both modes
+function notifyContentSizeChanged() {
+    var dimensions = getContentDimensions();
+
+    // Call native handler if available
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.contentSizeHandler) {
+        window.webkit.messageHandlers.contentSizeHandler.postMessage(dimensions);
+    }
+}
+
+// Monitor for content changes that might affect height
+function setupContentObserver() {
+    // Notify on DOM content loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', notifyContentSizeChanged);
+    } else {
+        notifyContentSizeChanged();
+    }
+
+    // Notify on window load (after images, etc.)
+    window.addEventListener('load', notifyContentSizeChanged);
+
+    // Notify on window resize
+    window.addEventListener('resize', notifyContentSizeChanged);
+
+    // Use MutationObserver to watch for DOM changes that might affect height
+    if (window.MutationObserver) {
+        var observer = new MutationObserver(function(mutations) {
+            var shouldNotify = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                    shouldNotify = true;
+                }
+            });
+            if (shouldNotify) {
+                setTimeout(notifyContentSizeChanged, 100); // Debounce
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+    }
+}
+
+// Initialize content observer
+setupContentObserver();
+
 // Class manipulation
 function hasClass(ele,cls) {
   return !!ele.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'));

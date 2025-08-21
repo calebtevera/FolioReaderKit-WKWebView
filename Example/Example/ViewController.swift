@@ -11,99 +11,141 @@ import FolioReaderKit
 
 class ViewController: UIViewController {
 
-    @IBOutlet weak var bookOne: UIButton?
-    @IBOutlet weak var bookTwo: UIButton?
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var descriptionLabel: UILabel!
+    @IBOutlet weak var verticalScrollButton: UIButton!
+    @IBOutlet weak var horizontalScrollButton: UIButton!
+
     let folioReader = FolioReader()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        self.bookOne?.tag = Epub.bookOne.rawValue
-        self.bookTwo?.tag = Epub.bookTwo.rawValue
-
-        self.setCover(self.bookOne, index: 0)
-        self.setCover(self.bookTwo, index: 1)
+        setupUI()
     }
 
-    private func readerConfiguration(forEpub epub: Epub) -> FolioReaderConfig {
-        let config = FolioReaderConfig(withIdentifier: epub.readerIdentifier)
-        config.shouldHideNavigationOnTap = epub.shouldHideNavigationOnTap
-        config.scrollDirection = epub.scrollDirection
+    private func setupUI() {
+        // Configure the UI to showcase both scroll mode fixes
+        titleLabel.text = "Scroll Mode Demo"
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
+        titleLabel.textAlignment = .center
 
-        // Enable font style changes so users can select different fonts
+        descriptionLabel.text = """
+        This demo showcases the improved scrolling in FolioReaderKit for both modes:
+
+        ✅ Complete content rendering (no trimming)
+        ✅ Accurate slider/scrubber tracking
+        ✅ Proper content sizing
+        ✅ Dynamic size adjustments
+
+        Try both modes and notice:
+        • Slider accurately tracks your position
+        • All content is accessible
+        • Smooth scrolling experience
+        • Font changes update content size
+        """
+        descriptionLabel.numberOfLines = 0
+        descriptionLabel.textAlignment = .center
+        descriptionLabel.font = UIFont.systemFont(ofSize: 16)
+
+        // Setup buttons
+        setupButton(verticalScrollButton, title: "📖 Vertical Scroll\n\"The Silver Chair\"", color: UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0))
+        setupButton(horizontalScrollButton, title: "📚 Horizontal Scroll\n\"Sherlock Holmes\"", color: UIColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 1.0))
+
+        // Set cover images
+        setCoverImages()
+    }
+
+    private func setupButton(_ button: UIButton, title: String, color: UIColor) {
+        button.setTitle(title, for: .normal)
+        button.backgroundColor = color
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        button.titleLabel?.numberOfLines = 0
+        button.titleLabel?.textAlignment = .center
+    }
+
+    private func readerConfiguration(scrollDirection: FolioReaderScrollDirection, identifier: String) -> FolioReaderConfig {
+        let config = FolioReaderConfig(withIdentifier: identifier)
+
+        // Set the scroll direction
+        config.scrollDirection = scrollDirection
+        config.shouldHideNavigationOnTap = scrollDirection == .horizontal // Hide nav for horizontal for better demo
+
+        // Enable features to showcase the reader capabilities
         config.canChangeFontStyle = true
-
-        // Enable dark/light mode switching
         config.canChangeScrollDirection = true
-
-        // Display title in navigation bar
         config.displayTitle = true
-
-        // Enable text-to-speech
         config.enableTTS = true
-        // Allow sharing
         config.allowSharing = true
-        // Configure colors for better dark/light mode experience
-        config.tintColor = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50
+
+        // Configure colors for better experience
+        let tintColor = scrollDirection == .vertical ?
+            UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) : // Green for vertical
+            UIColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 1.0)       // Blue for horizontal
+
+        config.tintColor = tintColor
         config.menuBackgroundColor = UIColor.white
-        config.menuTextColor = UIColor(red: 0.463, green: 0.463, blue: 0.463, alpha: 1.0) // #767676
-        config.menuTextColorSelected = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50
+        config.menuTextColor = UIColor(red: 0.463, green: 0.463, blue: 0.463, alpha: 1.0)
+        config.menuTextColorSelected = tintColor
 
         // Dark mode colors
-        config.nightModeBackground = UIColor(red: 0.075, green: 0.075, blue: 0.075, alpha: 1.0) // #131313
-        config.nightModeMenuBackground = UIColor(red: 0.118, green: 0.118, blue: 0.118, alpha: 1.0) // #1E1E1E
+        config.nightModeBackground = UIColor(red: 0.075, green: 0.075, blue: 0.075, alpha: 1.0)
+        config.nightModeMenuBackground = UIColor(red: 0.118, green: 0.118, blue: 0.118, alpha: 1.0)
         config.nightModeSeparatorColor = UIColor(white: 0.5, alpha: 0.2)
-
-        // Custom sharing quote background
-        config.quoteCustomBackgrounds = []
-        if let image = UIImage(named: "demo-bg") {
-            let customImageQuote = QuoteImage(withImage: image, alpha: 0.6, backgroundColor: UIColor.black)
-            config.quoteCustomBackgrounds.append(customImageQuote)
-        }
-
-        let textColor = UIColor(red:0.86, green:0.73, blue:0.70, alpha:1.0)
-        let customColor = UIColor(red:0.30, green:0.26, blue:0.20, alpha:1.0)
-        let customQuote = QuoteImage(withColor: customColor, alpha: 1.0, textColor: textColor)
-        config.quoteCustomBackgrounds.append(customQuote)
 
         return config
     }
 
-    fileprivate func open(epub: Epub) {
-        guard let bookPath = epub.bookPath else {
+    private func setCoverImages() {
+        // Set cover for vertical scroll book
+        if let silverChairPath = Bundle.main.path(forResource: "The Silver Chair", ofType: "epub") {
+            do {
+                let image = try FolioReader.getCoverImage(silverChairPath)
+                verticalScrollButton.setBackgroundImage(image, for: .normal)
+                verticalScrollButton.imageView?.contentMode = .scaleAspectFit
+                verticalScrollButton.imageView?.alpha = 0.3
+            } catch {
+                print("Error loading vertical scroll cover: \(error)")
+            }
+        }
+
+        // Set cover for horizontal scroll book
+        if let holmesPath = Bundle.main.path(forResource: "The Adventures Of Sherlock Holmes - Adventure I", ofType: "epub") {
+            do {
+                let image = try FolioReader.getCoverImage(holmesPath)
+                horizontalScrollButton.setBackgroundImage(image, for: .normal)
+                horizontalScrollButton.imageView?.contentMode = .scaleAspectFit
+                horizontalScrollButton.imageView?.alpha = 0.3
+            } catch {
+                print("Error loading horizontal scroll cover: \(error)")
+            }
+        }
+    }
+
+    @IBAction func openVerticalScrollBook(_ sender: UIButton) {
+        guard let bookPath = Bundle.main.path(forResource: "The Silver Chair", ofType: "epub") else {
+            showAlert(title: "Book Not Found", message: "The Silver Chair.epub was not found in the app bundle.")
             return
         }
 
-        let readerConfiguration = self.readerConfiguration(forEpub: epub)
-        folioReader.presentReader(parentViewController: self, withEpubPath: bookPath, andConfig: readerConfiguration, shouldRemoveEpub: false)
+        let config = readerConfiguration(scrollDirection: .vertical, identifier: "VERTICAL_SCROLL_DEMO")
+        folioReader.presentReader(parentViewController: self, withEpubPath: bookPath, andConfig: config, shouldRemoveEpub: false)
     }
 
-    private func setCover(_ button: UIButton?, index: Int) {
-        guard
-            let epub = Epub(rawValue: index),
-            let bookPath = epub.bookPath else {
-                return
-        }
-
-        do {
-            let image = try FolioReader.getCoverImage(bookPath)
-
-            button?.setBackgroundImage(image, for: .normal)
-        } catch {
-            print(error.localizedDescription)
-        }
-    }
-}
-
-// MARK: - IBAction
-
-extension ViewController {
-    
-    @IBAction func didOpen(_ sender: AnyObject) {
-        guard let epub = Epub(rawValue: sender.tag) else {
+    @IBAction func openHorizontalScrollBook(_ sender: UIButton) {
+        guard let bookPath = Bundle.main.path(forResource: "The Adventures Of Sherlock Holmes - Adventure I", ofType: "epub") else {
+            showAlert(title: "Book Not Found", message: "The Adventures Of Sherlock Holmes - Adventure I.epub was not found in the app bundle.")
             return
         }
 
-        self.open(epub: epub)
+        let config = readerConfiguration(scrollDirection: .horizontal, identifier: "HORIZONTAL_SCROLL_DEMO")
+        folioReader.presentReader(parentViewController: self, withEpubPath: bookPath, andConfig: config, shouldRemoveEpub: false)
+    }
+
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
