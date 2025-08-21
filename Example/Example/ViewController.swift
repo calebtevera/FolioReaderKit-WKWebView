@@ -51,16 +51,25 @@ class ViewController: UIViewController {
 
         // Start with vertical scroll, but allow users to change it in settings
         config.scrollDirection = .vertical
+
+        // IMPORTANT: Don't hide navigation on tap - this was key to better tracking
         config.shouldHideNavigationOnTap = false
 
         // Enable scroll direction switching - this is the key feature
         config.canChangeScrollDirection = true
 
-        // Enable all reader features
+        // Enable all reader features for better experience
         config.canChangeFontStyle = true
         config.displayTitle = true
         config.enableTTS = true
         config.allowSharing = true
+
+        // CRITICAL: Don't hide bars - this prevents content cutting issues
+        config.hideBars = false
+
+        // Ensure content is loaded and tracked properly
+        config.loadSavedPositionForCurrentBook = true
+        config.hidePageIndicator = false
 
         // Configure colors for the enhanced reader
         config.tintColor = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50

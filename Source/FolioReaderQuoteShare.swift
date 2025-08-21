@@ -126,13 +126,19 @@ class FolioReaderQuoteShare: UIViewController {
         filterImage.addSubview(authorLabel)
 
         let logoImage = self.readerConfig.quoteCustomLogoImage
-        let logoHeight = logoImage.size.height
+
+        // Calculate proper logo height with bounds checking
+        let maxLogoHeight: CGFloat = 60
+        let logoHeight = min(logoImage.size.height, maxLogoHeight)
+        let logoWidth = logoImage.size.width * (logoHeight / logoImage.size.height)
+
         logoImageView = UIImageView(image: logoImage)
-        logoImageView.contentMode = .center
+        logoImageView.contentMode = .scaleAspectFit
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
+        logoImageView.backgroundColor = UIColor.clear
         filterImage.addSubview(logoImageView)
 
-        // Configure layout contraints
+        // Configure layout constraints with proper sizing
         var constraints = [NSLayoutConstraint]()
         let views = [
             "quoteLabel": self.quoteLabel,
@@ -141,14 +147,20 @@ class FolioReaderQuoteShare: UIViewController {
             "logoImageView": self.logoImageView
             ] as [String : Any]
 
+        // Vertical constraints with safe spacing
         NSLayoutConstraint.constraints(withVisualFormat: "V:|-40-[quoteLabel]-20-[titleLabel]", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
-        NSLayoutConstraint.constraints(withVisualFormat: "V:[titleLabel]-0-[authorLabel]", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
-        NSLayoutConstraint.constraints(withVisualFormat: "V:[authorLabel]-25-[logoImageView(\(Int(logoHeight)))]-18-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
+        NSLayoutConstraint.constraints(withVisualFormat: "V:[titleLabel]-5-[authorLabel]", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
+        NSLayoutConstraint.constraints(withVisualFormat: "V:[authorLabel]-20-[logoImageView(<=\(Int(logoHeight)))]-20-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
 
+        // Horizontal constraints
         NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[quoteLabel]-15-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
         NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[titleLabel]-15-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
         NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[authorLabel]-15-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
-        NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[logoImageView]-15-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
+
+        // Center the logo horizontally and set a maximum width
+        logoImageView.centerXAnchor.constraint(equalTo: filterImage.centerXAnchor).isActive = true
+        logoImageView.widthAnchor.constraint(lessThanOrEqualToConstant: min(logoWidth, 200)).isActive = true
+        logoImageView.heightAnchor.constraint(lessThanOrEqualToConstant: logoHeight).isActive = true
 
         filterImage.addConstraints(constraints)
 
