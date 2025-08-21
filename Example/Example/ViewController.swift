@@ -13,8 +13,7 @@ class ViewController: UIViewController {
 
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var descriptionLabel: UILabel!
-    @IBOutlet weak var verticalScrollButton: UIButton!
-    @IBOutlet weak var horizontalScrollButton: UIButton!
+    @IBOutlet weak var openBookButton: UIButton!
 
     let folioReader = FolioReader()
 
@@ -24,70 +23,50 @@ class ViewController: UIViewController {
     }
 
     private func setupUI() {
-        // Configure the UI to showcase both scroll mode fixes
-        titleLabel.text = "Scroll Mode Demo"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
+        // Configure the UI with simplified messaging
+        titleLabel.text = "Enhanced Reader"
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 28)
         titleLabel.textAlignment = .center
 
-        descriptionLabel.text = """
-        This demo showcases the improved scrolling in FolioReaderKit for both modes:
-
-        ✅ Complete content rendering (no trimming)
-        ✅ Accurate slider/scrubber tracking
-        ✅ Proper content sizing
-        ✅ Dynamic size adjustments
-
-        Try both modes and notice:
-        • Slider accurately tracks your position
-        • All content is accessible
-        • Smooth scrolling experience
-        • Font changes update content size
-        """
+        descriptionLabel.text = "Enhanced Reader"
         descriptionLabel.numberOfLines = 0
         descriptionLabel.textAlignment = .center
-        descriptionLabel.font = UIFont.systemFont(ofSize: 16)
+        descriptionLabel.font = UIFont.systemFont(ofSize: 18)
 
-        // Setup buttons
-        setupButton(verticalScrollButton, title: "📖 Vertical Scroll\n\"The Silver Chair\"", color: UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0))
-        setupButton(horizontalScrollButton, title: "📚 Horizontal Scroll\n\"Sherlock Holmes\"", color: UIColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 1.0))
+        // Setup single book button
+        openBookButton.setTitle("📖 Open Book\n\"The Silver Chair\"", for: .normal)
+        openBookButton.backgroundColor = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50
+        openBookButton.setTitleColor(.white, for: .normal)
+        openBookButton.layer.cornerRadius = 12
+        openBookButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        openBookButton.titleLabel?.numberOfLines = 0
+        openBookButton.titleLabel?.textAlignment = .center
 
-        // Set cover images
-        setCoverImages()
+        // Set cover image
+        setCoverImage()
     }
 
-    private func setupButton(_ button: UIButton, title: String, color: UIColor) {
-        button.setTitle(title, for: .normal)
-        button.backgroundColor = color
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 8
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.titleLabel?.numberOfLines = 0
-        button.titleLabel?.textAlignment = .center
-    }
+    private func readerConfiguration() -> FolioReaderConfig {
+        let config = FolioReaderConfig(withIdentifier: "ENHANCED_READER_DEMO")
 
-    private func readerConfiguration(scrollDirection: FolioReaderScrollDirection, identifier: String) -> FolioReaderConfig {
-        let config = FolioReaderConfig(withIdentifier: identifier)
+        // Start with vertical scroll, but allow users to change it in settings
+        config.scrollDirection = .vertical
+        config.shouldHideNavigationOnTap = false
 
-        // Set the scroll direction
-        config.scrollDirection = scrollDirection
-        config.shouldHideNavigationOnTap = scrollDirection == .horizontal // Hide nav for horizontal for better demo
-
-        // Enable features to showcase the reader capabilities
-        config.canChangeFontStyle = true
+        // Enable scroll direction switching - this is the key feature
         config.canChangeScrollDirection = true
+
+        // Enable all reader features
+        config.canChangeFontStyle = true
         config.displayTitle = true
         config.enableTTS = true
         config.allowSharing = true
 
-        // Configure colors for better experience
-        let tintColor = scrollDirection == .vertical ?
-            UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) : // Green for vertical
-            UIColor(red: 0.2, green: 0.6, blue: 1.0, alpha: 1.0)       // Blue for horizontal
-
-        config.tintColor = tintColor
+        // Configure colors for the enhanced reader
+        config.tintColor = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0) // #6ACC50
         config.menuBackgroundColor = UIColor.white
         config.menuTextColor = UIColor(red: 0.463, green: 0.463, blue: 0.463, alpha: 1.0)
-        config.menuTextColorSelected = tintColor
+        config.menuTextColorSelected = UIColor(red: 0.416, green: 0.8, blue: 0.314, alpha: 1.0)
 
         // Dark mode colors
         config.nightModeBackground = UIColor(red: 0.075, green: 0.075, blue: 0.075, alpha: 1.0)
@@ -97,49 +76,27 @@ class ViewController: UIViewController {
         return config
     }
 
-    private func setCoverImages() {
-        // Set cover for vertical scroll book
-        if let silverChairPath = Bundle.main.path(forResource: "The Silver Chair", ofType: "epub") {
+    private func setCoverImage() {
+        // Set cover for the single book
+        if let bookPath = Bundle.main.path(forResource: "The Silver Chair", ofType: "epub") {
             do {
-                let image = try FolioReader.getCoverImage(silverChairPath)
-                verticalScrollButton.setBackgroundImage(image, for: .normal)
-                verticalScrollButton.imageView?.contentMode = .scaleAspectFit
-                verticalScrollButton.imageView?.alpha = 0.3
+                let image = try FolioReader.getCoverImage(bookPath)
+                openBookButton.setBackgroundImage(image, for: .normal)
+                openBookButton.imageView?.contentMode = .scaleAspectFit
+                openBookButton.imageView?.alpha = 0.2
             } catch {
-                print("Error loading vertical scroll cover: \(error)")
-            }
-        }
-
-        // Set cover for horizontal scroll book
-        if let holmesPath = Bundle.main.path(forResource: "The Adventures Of Sherlock Holmes - Adventure I", ofType: "epub") {
-            do {
-                let image = try FolioReader.getCoverImage(holmesPath)
-                horizontalScrollButton.setBackgroundImage(image, for: .normal)
-                horizontalScrollButton.imageView?.contentMode = .scaleAspectFit
-                horizontalScrollButton.imageView?.alpha = 0.3
-            } catch {
-                print("Error loading horizontal scroll cover: \(error)")
+                print("Error loading book cover: \(error)")
             }
         }
     }
 
-    @IBAction func openVerticalScrollBook(_ sender: UIButton) {
+    @IBAction func openBook(_ sender: UIButton) {
         guard let bookPath = Bundle.main.path(forResource: "The Silver Chair", ofType: "epub") else {
             showAlert(title: "Book Not Found", message: "The Silver Chair.epub was not found in the app bundle.")
             return
         }
 
-        let config = readerConfiguration(scrollDirection: .vertical, identifier: "VERTICAL_SCROLL_DEMO")
-        folioReader.presentReader(parentViewController: self, withEpubPath: bookPath, andConfig: config, shouldRemoveEpub: false)
-    }
-
-    @IBAction func openHorizontalScrollBook(_ sender: UIButton) {
-        guard let bookPath = Bundle.main.path(forResource: "The Adventures Of Sherlock Holmes - Adventure I", ofType: "epub") else {
-            showAlert(title: "Book Not Found", message: "The Adventures Of Sherlock Holmes - Adventure I.epub was not found in the app bundle.")
-            return
-        }
-
-        let config = readerConfiguration(scrollDirection: .horizontal, identifier: "HORIZONTAL_SCROLL_DEMO")
+        let config = readerConfiguration()
         folioReader.presentReader(parentViewController: self, withEpubPath: bookPath, andConfig: config, shouldRemoveEpub: false)
     }
 

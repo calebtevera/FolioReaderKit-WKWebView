@@ -18,86 +18,60 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Scroll Mode Demo" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="title-label">
-                                <rect key="frame" x="20" y="44" width="335" height="29"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Enhanced Reader" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="title-label">
+                                <rect key="frame" x="20" y="100" width="335" height="33"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="28"/>
                                 <color key="textColor" red="0.2" green="0.2" blue="0.2" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Demo Description" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="description-label">
-                                <rect key="frame" x="20" y="93" width="335" height="250"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Enhanced Reader" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="description-label">
+                                <rect key="frame" x="20" y="163" width="335" height="22"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                 <color key="textColor" red="0.4" green="0.4" blue="0.4" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vertical-scroll-button">
-                                <rect key="frame" x="40" y="363" width="295" height="80"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="open-book-button">
+                                <rect key="frame" x="40" y="285" width="295" height="120"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="80" id="vertical-button-height"/>
+                                    <constraint firstAttribute="height" constant="120" id="button-height"/>
                                 </constraints>
                                 <color key="backgroundColor" red="0.416" green="0.8" blue="0.314" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="16"/>
-                                <state key="normal" title="Vertical Scroll Book">
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                <state key="normal" title="Open Book">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <userDefinedRuntimeAttributes>
                                     <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <integer key="value" value="8"/>
+                                        <integer key="value" value="12"/>
                                     </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
                                 <connections>
-                                    <action selector="openVerticalScrollBook:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="vertical-action"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="horizontal-scroll-button">
-                                <rect key="frame" x="40" y="463" width="295" height="80"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="80" id="horizontal-button-height"/>
-                                </constraints>
-                                <color key="backgroundColor" red="0.2" green="0.6" blue="1.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <fontDescription key="fontDescription" type="boldSystem" pointSize="16"/>
-                                <state key="normal" title="Horizontal Scroll Book">
-                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                </state>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <integer key="value" value="8"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
-                                <connections>
-                                    <action selector="openHorizontalScrollBook:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="horizontal-action"/>
+                                    <action selector="openBook:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="book-action"/>
                                 </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="0.95" green="0.95" blue="0.97" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <!-- Title Label Constraints -->
-                            <constraint firstItem="title-label" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="20" id="title-top"/>
+                            <constraint firstItem="title-label" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="76" id="title-top"/>
                             <constraint firstItem="title-label" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="title-leading"/>
                             <constraint firstAttribute="trailing" secondItem="title-label" secondAttribute="trailing" constant="20" id="title-trailing"/>
 
                             <!-- Description Label Constraints -->
-                            <constraint firstItem="description-label" firstAttribute="top" secondItem="title-label" secondAttribute="bottom" constant="20" id="desc-top"/>
+                            <constraint firstItem="description-label" firstAttribute="top" secondItem="title-label" secondAttribute="bottom" constant="30" id="desc-top"/>
                             <constraint firstItem="description-label" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="desc-leading"/>
                             <constraint firstAttribute="trailing" secondItem="description-label" secondAttribute="trailing" constant="20" id="desc-trailing"/>
-                            <constraint firstItem="description-label" firstAttribute="height" constant="250" id="desc-height"/>
 
-                            <!-- Vertical Button Constraints -->
-                            <constraint firstItem="vertical-scroll-button" firstAttribute="top" secondItem="description-label" secondAttribute="bottom" constant="20" id="vertical-button-top"/>
-                            <constraint firstItem="vertical-scroll-button" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="40" id="vertical-button-leading"/>
-                            <constraint firstAttribute="trailing" secondItem="vertical-scroll-button" secondAttribute="trailing" constant="40" id="vertical-button-trailing"/>
-
-                            <!-- Horizontal Button Constraints -->
-                            <constraint firstItem="horizontal-scroll-button" firstAttribute="top" secondItem="vertical-scroll-button" secondAttribute="bottom" constant="20" id="horizontal-button-top"/>
-                            <constraint firstItem="horizontal-scroll-button" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="40" id="horizontal-button-leading"/>
-                            <constraint firstAttribute="trailing" secondItem="horizontal-scroll-button" secondAttribute="trailing" constant="40" id="horizontal-button-trailing"/>
+                            <!-- Button Constraints -->
+                            <constraint firstItem="open-book-button" firstAttribute="top" secondItem="description-label" secondAttribute="bottom" constant="100" id="button-top"/>
+                            <constraint firstItem="open-book-button" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="40" id="button-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="open-book-button" secondAttribute="trailing" constant="40" id="button-trailing"/>
                         </constraints>
                     </view>
                     <connections>
                         <outlet property="titleLabel" destination="title-label" id="title-outlet"/>
                         <outlet property="descriptionLabel" destination="description-label" id="desc-outlet"/>
-                        <outlet property="verticalScrollButton" destination="vertical-scroll-button" id="vertical-outlet"/>
-                        <outlet property="horizontalScrollButton" destination="horizontal-scroll-button" id="horizontal-outlet"/>
+                        <outlet property="openBookButton" destination="open-book-button" id="button-outlet"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
