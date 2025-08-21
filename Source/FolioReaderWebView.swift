@@ -74,11 +74,7 @@ open class FolioReaderWebView: WKWebView {
     }
 
     private func setupEPUBResourceHandling() {
-        // Allow universal access from file URLs to load images and other resources
-        if #available(iOS 14.0, *) {
-            // iOS 14+ handles file URL access more restrictively, so we ensure proper configuration
-            setValue(true, forKey: "allowsArbitraryLoads")
-        }
+        // Configure web view settings for better EPUB resource loading
 
         // Enable debugging for resource loading issues
         #if DEBUG
@@ -86,6 +82,15 @@ open class FolioReaderWebView: WKWebView {
             isInspectable = true
         }
         #endif
+
+        // Set additional properties for better file loading
+        allowsBackForwardNavigationGestures = false
+        allowsLinkPreview = false
+
+        // Configure scrolling behavior
+        scrollView.bounces = true
+        scrollView.alwaysBounceVertical = false
+        scrollView.alwaysBounceHorizontal = false
     }
 
     required public init?(coder aDecoder: NSCoder) {
