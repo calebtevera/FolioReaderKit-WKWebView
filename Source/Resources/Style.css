@@ -82,8 +82,69 @@ img {
     -webkit-user-select: none;
     max-width: 100% !important;
     height: auto !important;
-    display: inline-block !important;
+    display: block !important;
+    margin: 0 auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    /* Ensure images load properly in EPUB context */
+    box-sizing: border-box !important;
+    border: none !important;
+    outline: none !important;
+
+    /* Handle different image formats */
+    object-fit: contain !important;
+    background-color: transparent !important;
+
+    /* Smooth loading transition */
+    transition: opacity 0.3s ease-in-out !important;
 }
+
+/* Specific styling for images that fail to load */
+img[src=""], img:not([src]) {
+    display: none !important;
+}
+
+/* Ensure images within paragraphs are properly styled */
+p img, div img, figure img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 10px auto !important;
+}
+
+/* Support for figure elements commonly used in EPUBs */
+figure {
+    margin: 1em auto !important;
+    text-align: center !important;
+    max-width: 100% !important;
+}
+
+figure img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+figcaption {
+    font-style: italic !important;
+    font-size: 0.9em !important;
+    color: #666 !important;
+    margin-top: 0.5em !important;
+    text-align: center !important;
+}
+
+/* Night mode adjustments for images */
+.nightMode img {
+    opacity: 0.9 !important;
+    filter: brightness(0.8) !important;
+}
+
+.nightMode figcaption {
+    color: #ccc !important;
+}
+
 p {
     margin: 1.3em 0 1.5em 0;
     line-height: 1.40em !important;

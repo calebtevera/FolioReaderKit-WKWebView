@@ -143,9 +143,66 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
     func loadHTMLString(_ htmlContent: String!, baseURL: URL!) {
         // Insert the stored highlights to the HTML
         let tempHtmlContent = htmlContentWithInsertHighlights(htmlContent)
-        // Load the html into the webview
+
+        // Ensure proper base URL for resource loading
+        guard let baseURL = baseURL else {
+            print("Warning: No base URL provided for EPUB content loading")
+            webView?.loadHTMLString(tempHtmlContent, baseURL: nil)
+            return
+        }
+
+        // Load the html into the webview with proper base URL for image loading
         webView?.alpha = 0
-        webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+
+        // For iOS 9+ and WKWebView, ensure the base URL has proper file:// scheme
+        let properBaseURL: URL
+        if baseURL.isFileURL {
+            properBaseURL = baseURL
+        } else {
+            // Convert to file URL if needed
+            properBaseURL = URL(fileURLWithPath: baseURL.path)
+        }
+
+        // Load content with the properly formatted base URL
+        webView?.loadHTMLString(tempHtmlContent, baseURL: properBaseURL)
+
+        // Add a slight delay to ensure images are loaded after content
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.refreshImageResources()
+        }
+    }
+
+    // Helper method to refresh image resources after content load
+    private func refreshImageResources() {
+        // Execute JavaScript to ensure images are properly loaded and sized
+        webView?.js("document.images.length") { result in
+            if let imageCount = result, let count = Int(imageCount), count > 0 {
+                // Images are present, ensure they're properly sized
+                self.webView?.js("""
+                    var images = document.getElementsByTagName('img');
+                    for (var i = 0; i < images.length; i++) {
+                        var img = images[i];
+                        img.style.maxWidth = '100%';
+                        img.style.height = 'auto';
+                        img.style.display = 'block';
+
+                        // Handle image load errors by adding error handling
+                        img.onerror = function() {
+                            console.log('Image failed to load: ' + this.src);
+                            this.style.display = 'none';
+                        };
+
+                        // Ensure image is visible once loaded
+                        img.onload = function() {
+                            this.style.opacity = '1';
+                        };
+                    }
+                """) { _ in
+                    // Refresh content size after image adjustments
+                    self.webView?.refreshContentSize()
+                }
+            }
+        }
     }
 
     // MARK: - Highlights

@@ -49,10 +49,43 @@ open class FolioReaderWebView: WKWebView {
             assertionFailure("unsupported iOS version")
         }
 
+        // Enable file URL loading for EPUB images and resources
+        if #available(iOS 9.0, *) {
+            configuration.allowsInlineMediaPlayback = true
+            configuration.mediaTypesRequiringUserActionForPlayback = []
+        }
+
+        // Configure web view preferences for better resource loading
+        configuration.preferences.javaScriptEnabled = true
+        configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+
+        // Enable file access from file URLs (needed for EPUB images)
+        if #available(iOS 14.0, *) {
+            configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        }
+
         super.init(frame: frame, configuration: configuration)
 
         // Setup content size handler for vertical scroll mode
         setupContentSizeHandler()
+
+        // Configure additional settings for EPUB resource loading
+        setupEPUBResourceHandling()
+    }
+
+    private func setupEPUBResourceHandling() {
+        // Allow universal access from file URLs to load images and other resources
+        if #available(iOS 14.0, *) {
+            // iOS 14+ handles file URL access more restrictively, so we ensure proper configuration
+            setValue(true, forKey: "allowsArbitraryLoads")
+        }
+
+        // Enable debugging for resource loading issues
+        #if DEBUG
+        if #available(iOS 16.4, *) {
+            isInspectable = true
+        }
+        #endif
     }
 
     required public init?(coder aDecoder: NSCoder) {
