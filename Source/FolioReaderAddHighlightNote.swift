@@ -195,16 +195,16 @@ class FolioReaderAddHighlightNote: UIViewController {
             // Notify that the note was saved successfully
             NotificationCenter.default.post(name: Notification.Name("HighlightNoteSaved"), object: highlight)
 
+            // Dismiss the view controller after successful save
+            dismiss(animated: true, completion: nil)
+
         } catch let error {
             print("Error saving note: \(error)")
             // Show an alert to the user
             let alert = UIAlertController(title: "Error", message: "Failed to save note. Please try again.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            present(alert, animated: true, completion: nil)
         }
-        
-        dismiss(animated: true)
     }
 }
 
@@ -232,4 +232,9 @@ extension FolioReaderAddHighlightNote: UITextViewDelegate {
         
         return true
     }
+}
+
+// MARK: - UIScrollViewDelegate
+extension FolioReaderAddHighlightNote: UIScrollViewDelegate {
+    // Empty implementation - required for scroll view delegate
 }
