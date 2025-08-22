@@ -420,8 +420,8 @@ open class FolioReaderWebView: WKWebView {
             break
         case .horizontal:
             scrollView.isPagingEnabled = true
-            //paginationMode = .leftToRight
-            //paginationBreakingMode = .page
+            paginationMode = .leftToRight
+            paginationBreakingMode = .page
             scrollView.bounces = false
             break
         }

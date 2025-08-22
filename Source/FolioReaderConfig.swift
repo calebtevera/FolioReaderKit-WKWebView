@@ -159,7 +159,7 @@ open class FolioReaderConfig: NSObject {
     // MARK: Quote image share
 
     /// Custom Quote logo
-    open var quoteCustomLogoImage       = UIImage(readerImageNamed: "ztf-logo")!
+    open var quoteCustomLogoImage       = UIImage(readerImageNamed: "icon-logo")
     /// Add custom backgrounds and font colors to Quote Images
     open var quoteCustomBackgrounds     = [QuoteImage]()
 

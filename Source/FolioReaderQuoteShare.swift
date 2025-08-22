@@ -126,7 +126,7 @@ class FolioReaderQuoteShare: UIViewController {
         filterImage.addSubview(authorLabel)
 
         let logoImage = self.readerConfig.quoteCustomLogoImage
-        let logoHeight = logoImage.size.height
+        let logoHeight = logoImage?.size.height
         logoImageView = UIImageView(image: logoImage)
         logoImageView.contentMode = .center
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -143,7 +143,7 @@ class FolioReaderQuoteShare: UIViewController {
 
         NSLayoutConstraint.constraints(withVisualFormat: "V:|-40-[quoteLabel]-20-[titleLabel]", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
         NSLayoutConstraint.constraints(withVisualFormat: "V:[titleLabel]-0-[authorLabel]", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
-        NSLayoutConstraint.constraints(withVisualFormat: "V:[authorLabel]-25-[logoImageView(\(Int(logoHeight)))]-18-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
+        NSLayoutConstraint.constraints(withVisualFormat: "V:[authorLabel]-25-[logoImageView(\(Int(logoHeight!)))]-18-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
 
         NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[quoteLabel]-15-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
         NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[titleLabel]-15-|", options: [], metrics: nil, views: views).forEach { constraints.append($0) }
