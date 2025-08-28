@@ -227,7 +227,7 @@ class ViewControllerEnhanced: UIViewController, FolioReaderDelegate {
         config.canChangeFontStyle = true
 
         // Enable dark/light mode switching
-        config.canChangeScrollDirection = true
+        config.canChangeScrollDirection = false
 
         // Display title in navigation bar
         config.displayTitle = true
