@@ -413,16 +413,44 @@ open class FolioReaderWebView: WKWebView {
     
     func setupScrollDirection() {
         switch self.readerConfig.scrollDirection {
-        case .vertical, .defaultVertical, .horizontalWithVerticalContent:
+        case .vertical, .defaultVertical:
             scrollView.isPagingEnabled = false
-            //paginationMode = .unpaginated
-            scrollView.bounces = true
+            scrollView.bounces = false
+            // Remove any column CSS for vertical scrolling
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnCount = 'auto';", completionHandler: nil)
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '0px';", completionHandler: nil)
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnFill = 'auto';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnCount = 'auto';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnGap = '0px';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnFill = 'auto';", completionHandler: nil)
             break
         case .horizontal:
             scrollView.isPagingEnabled = true
-            //paginationMode = .leftToRight
-            //paginationBreakingMode = .page
             scrollView.bounces = false
+            // Set up CSS columns for horizontal paging
+            let pageWidth = Int(self.frame.width)
+            let columnGap = 40
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnFill = 'auto';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnFill = 'auto';", completionHandler: nil)
+            break
+        case .horizontalWithVerticalContent:
+            scrollView.isPagingEnabled = true
+            scrollView.bounces = false
+            // Set up CSS columns for horizontal paging with vertical content
+            let pageWidth = Int(self.frame.width)
+            let columnGap = 40
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.documentElement.style.webkitColumnFill = 'auto';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.webkitColumnFill = 'auto';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.height = '\(Int(self.frame.height))px';", completionHandler: nil)
+            self.evaluateJavaScript("document.body.style.overflow = 'hidden';", completionHandler: nil)
             break
         }
     }
