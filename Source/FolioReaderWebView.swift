@@ -423,22 +423,31 @@ open class FolioReaderWebView: WKWebView {
             scrollView.showsVerticalScrollIndicator = true
             scrollView.showsHorizontalScrollIndicator = false
 
-            // Remove any CSS columns to allow normal flow
+            // Apply vertical CSS class and remove any column styling
             self.evaluateJavaScript("""
+                // Add vertical class for CSS styling
+                document.documentElement.className = document.documentElement.className.replace(/\\b(horizontal|horizontalWithVerticalContent)\\b/g, '').trim();
+                document.documentElement.classList.add('vertical');
+                document.body.className = document.body.className.replace(/\\b(horizontal|horizontalWithVerticalContent)\\b/g, '').trim();
+                document.body.classList.add('vertical');
+
+                // Remove any column layout
                 document.documentElement.style.webkitColumnCount = 'auto';
                 document.documentElement.style.webkitColumnWidth = 'auto';
                 document.documentElement.style.webkitColumnGap = '0px';
-                document.documentElement.style.height = 'auto';
-                document.documentElement.style.width = '100%';
                 document.body.style.webkitColumnCount = 'auto';
                 document.body.style.webkitColumnWidth = 'auto';
                 document.body.style.webkitColumnGap = '0px';
-                document.body.style.height = 'auto';
+
+                // Ensure full width and natural height
+                document.documentElement.style.width = '100%';
+                document.documentElement.style.height = 'auto';
                 document.body.style.width = '100%';
                 document.body.style.maxWidth = '100%';
-                document.body.style.overflow = 'visible';
+                document.body.style.height = 'auto';
                 document.body.style.margin = '0';
                 document.body.style.padding = '40px 20px';
+                document.body.style.boxSizing = 'border-box';
             """, completionHandler: nil)
             break
 
@@ -455,17 +464,20 @@ open class FolioReaderWebView: WKWebView {
             let columnGap = 40
 
             self.evaluateJavaScript("""
+                // Add horizontal class for CSS styling
+                document.documentElement.className = document.documentElement.className.replace(/\\b(vertical|horizontalWithVerticalContent)\\b/g, '').trim();
+                document.documentElement.classList.add('horizontal');
+                document.body.className = document.body.className.replace(/\\b(vertical|horizontalWithVerticalContent)\\b/g, '').trim();
+                document.body.classList.add('horizontal');
+
+                // Set up column layout
                 document.documentElement.style.webkitColumnWidth = '\(pageWidth)px';
                 document.documentElement.style.webkitColumnGap = '\(columnGap)px';
                 document.documentElement.style.webkitColumnFill = 'auto';
-                document.documentElement.style.height = '100vh';
-                document.documentElement.style.width = 'auto';
                 document.body.style.webkitColumnWidth = '\(pageWidth)px';
                 document.body.style.webkitColumnGap = '\(columnGap)px';
                 document.body.style.webkitColumnFill = 'auto';
-                document.body.style.height = '100vh';
-                document.body.style.width = 'auto';
-                document.body.style.overflow = 'hidden';
+
                 document.body.style.margin = '0';
                 document.body.style.padding = '40px 20px';
             """, completionHandler: nil)
@@ -480,35 +492,34 @@ open class FolioReaderWebView: WKWebView {
             scrollView.showsVerticalScrollIndicator = true
             scrollView.showsHorizontalScrollIndicator = false
 
-            // Set up the content to flow vertically and fill the screen width
             self.evaluateJavaScript("""
+                // Add horizontalWithVerticalContent class for CSS styling
+                document.documentElement.className = document.documentElement.className.replace(/\\b(vertical|horizontal)\\b/g, '').trim();
+                document.documentElement.classList.add('horizontalWithVerticalContent');
+                document.body.className = document.body.className.replace(/\\b(vertical|horizontal)\\b/g, '').trim();
+                document.body.classList.add('horizontalWithVerticalContent');
+
                 // Remove any column layout for vertical flow
                 document.documentElement.style.webkitColumnCount = 'auto';
                 document.documentElement.style.webkitColumnWidth = 'auto';
                 document.documentElement.style.webkitColumnGap = '0px';
-                document.documentElement.style.height = 'auto';
-                document.documentElement.style.width = '100%';
-
-                // Set up body for full-width vertical content flow
                 document.body.style.webkitColumnCount = 'auto';
                 document.body.style.webkitColumnWidth = 'auto';
                 document.body.style.webkitColumnGap = '0px';
+
+                // Set up full-width vertical content flow
+                document.documentElement.style.width = '100%';
+                document.documentElement.style.height = 'auto';
                 document.body.style.width = '100%';
                 document.body.style.maxWidth = '100%';
                 document.body.style.height = 'auto';
-                document.body.style.overflow = 'visible';
                 document.body.style.margin = '0';
                 document.body.style.padding = '40px 20px';
-
-                // Ensure content wraps properly and fills width
-                document.body.style.wordWrap = 'break-word';
-                document.body.style.overflowWrap = 'break-word';
                 document.body.style.boxSizing = 'border-box';
 
-                // Make sure paragraphs and other elements use full width
-                var style = document.createElement('style');
-                style.innerHTML = 'p, div, span, h1, h2, h3, h4, h5, h6 { width: 100% !important; max-width: 100% !important; }';
-                document.head.appendChild(style);
+                // Ensure proper text wrapping
+                document.body.style.wordWrap = 'break-word';
+                document.body.style.overflowWrap = 'break-word';
             """, completionHandler: nil)
             break
         }

@@ -81,8 +81,7 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         if webView == nil {
             webView = FolioReaderWebView(frame: webViewFrame(), readerContainer: readerContainer)
             webView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            webView?.scrollView.showsVerticalScrollIndicator = false
-            webView?.scrollView.showsHorizontalScrollIndicator = false
+            // Don't disable scroll indicators here - let setupScrollDirection handle this
             webView?.backgroundColor = .clear
             self.contentView.addSubview(webView!)
         }

@@ -34,26 +34,43 @@ footer, header, hgroup, menu, nav, section {
 html {
     -webkit-text-size-adjust: none; /* Never autoresize text */
     padding: 0 0 !important;
-    overflow: hidden;
 }
 
 body {
     padding: 40px 20px !important;
+}
+
+/* Vertical scrolling mode */
+html.vertical {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+body.vertical {
+    overflow: visible !important;
+    height: auto !important;
+}
+
+/* Horizontal scrolling mode */
+html.horizontal {
     overflow: hidden !important;
+    height: 100vh !important;
+}
+
+body.horizontal {
+    overflow: hidden !important;
+    height: 100vh !important;
 }
 
 /* Horizontal with Vertical Content specific styles */
 html.horizontalWithVerticalContent {
-    -webkit-column-fill: auto !important;
-    column-fill: auto !important;
-    height: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
 }
 
 body.horizontalWithVerticalContent {
-    -webkit-column-fill: auto !important;
-    column-fill: auto !important;
-    height: 100% !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+    height: auto !important;
 }
 
 * {
