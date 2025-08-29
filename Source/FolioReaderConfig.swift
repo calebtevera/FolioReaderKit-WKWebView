@@ -130,7 +130,7 @@ open class FolioReaderConfig: NSObject {
     open var hideBars = false
 
     /// If `canChangeScrollDirection` is `true` it will be overrided by user's option.
-    open var scrollDirection: FolioReaderScrollDirection = .horizontalWithVerticalContent
+    open var scrollDirection: FolioReaderScrollDirection = .horizontal
 
     /// Enable or disable hability to user change scroll direction on menu.
     open var canChangeScrollDirection = false

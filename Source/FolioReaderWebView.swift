@@ -411,7 +411,8 @@ open class FolioReaderWebView: WKWebView {
         self.isUserInteractionEnabled = true
     }
     
-    open func setupScrollDirection() {
+    /// Sets up the scroll direction and paging behavior for the web view
+    @objc open func setupScrollDirection() {
         switch self.readerConfig.scrollDirection {
         case .vertical, .defaultVertical:
             scrollView.isPagingEnabled = false
