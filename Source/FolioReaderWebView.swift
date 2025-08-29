@@ -420,6 +420,8 @@ open class FolioReaderWebView: WKWebView {
             scrollView.bounces = true
             scrollView.alwaysBounceVertical = true
             scrollView.alwaysBounceHorizontal = false
+            scrollView.showsVerticalScrollIndicator = true
+            scrollView.showsHorizontalScrollIndicator = false
 
             // Remove any CSS columns to allow normal flow
             self.evaluateJavaScript("""
@@ -427,11 +429,16 @@ open class FolioReaderWebView: WKWebView {
                 document.documentElement.style.webkitColumnWidth = 'auto';
                 document.documentElement.style.webkitColumnGap = '0px';
                 document.documentElement.style.height = 'auto';
+                document.documentElement.style.width = '100%';
                 document.body.style.webkitColumnCount = 'auto';
                 document.body.style.webkitColumnWidth = 'auto';
                 document.body.style.webkitColumnGap = '0px';
                 document.body.style.height = 'auto';
+                document.body.style.width = '100%';
+                document.body.style.maxWidth = '100%';
                 document.body.style.overflow = 'visible';
+                document.body.style.margin = '0';
+                document.body.style.padding = '40px 20px';
             """, completionHandler: nil)
             break
 
@@ -440,9 +447,11 @@ open class FolioReaderWebView: WKWebView {
             scrollView.isPagingEnabled = true
             scrollView.bounces = false
             scrollView.alwaysBounceVertical = false
-            scrollView.alwaysBounceHorizontal = false
+            scrollView.alwaysBounceHorizontal = true
+            scrollView.showsVerticalScrollIndicator = false
+            scrollView.showsHorizontalScrollIndicator = false
 
-            let pageWidth = Int(self.frame.width - 40) // Account for padding
+            let pageWidth = Int(self.frame.width - 80) // Account for padding
             let columnGap = 40
 
             self.evaluateJavaScript("""
@@ -450,43 +459,56 @@ open class FolioReaderWebView: WKWebView {
                 document.documentElement.style.webkitColumnGap = '\(columnGap)px';
                 document.documentElement.style.webkitColumnFill = 'auto';
                 document.documentElement.style.height = '100vh';
+                document.documentElement.style.width = 'auto';
                 document.body.style.webkitColumnWidth = '\(pageWidth)px';
                 document.body.style.webkitColumnGap = '\(columnGap)px';
                 document.body.style.webkitColumnFill = 'auto';
                 document.body.style.height = '100vh';
+                document.body.style.width = 'auto';
                 document.body.style.overflow = 'hidden';
+                document.body.style.margin = '0';
+                document.body.style.padding = '40px 20px';
             """, completionHandler: nil)
             break
 
         case .horizontalWithVerticalContent:
-            // Hybrid mode - pages turn horizontally but content flows vertically within each page
-            scrollView.isPagingEnabled = false // Let the web view handle its own scrolling
+            // Hybrid mode - vertical scrolling content within horizontal page navigation
+            scrollView.isPagingEnabled = false
             scrollView.bounces = true
             scrollView.alwaysBounceVertical = true
             scrollView.alwaysBounceHorizontal = false
+            scrollView.showsVerticalScrollIndicator = true
+            scrollView.showsHorizontalScrollIndicator = false
 
-            // Set up the content to flow vertically within the page boundaries
-            let pageWidth = Int(self.frame.width - 40) // Account for padding
-
+            // Set up the content to flow vertically and fill the screen width
             self.evaluateJavaScript("""
-                // Remove any column layout
+                // Remove any column layout for vertical flow
                 document.documentElement.style.webkitColumnCount = 'auto';
                 document.documentElement.style.webkitColumnWidth = 'auto';
                 document.documentElement.style.webkitColumnGap = '0px';
                 document.documentElement.style.height = 'auto';
+                document.documentElement.style.width = '100%';
 
-                // Set up body for vertical content flow
+                // Set up body for full-width vertical content flow
                 document.body.style.webkitColumnCount = 'auto';
                 document.body.style.webkitColumnWidth = 'auto';
                 document.body.style.webkitColumnGap = '0px';
-                document.body.style.width = '\(pageWidth)px';
-                document.body.style.maxWidth = '\(pageWidth)px';
+                document.body.style.width = '100%';
+                document.body.style.maxWidth = '100%';
                 document.body.style.height = 'auto';
                 document.body.style.overflow = 'visible';
+                document.body.style.margin = '0';
+                document.body.style.padding = '40px 20px';
 
-                // Ensure content wraps properly
+                // Ensure content wraps properly and fills width
                 document.body.style.wordWrap = 'break-word';
                 document.body.style.overflowWrap = 'break-word';
+                document.body.style.boxSizing = 'border-box';
+
+                // Make sure paragraphs and other elements use full width
+                var style = document.createElement('style');
+                style.innerHTML = 'p, div, span, h1, h2, h3, h4, h5, h6 { width: 100% !important; max-width: 100% !important; }';
+                document.head.appendChild(style);
             """, completionHandler: nil)
             break
         }
