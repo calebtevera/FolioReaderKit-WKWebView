@@ -415,43 +415,79 @@ open class FolioReaderWebView: WKWebView {
     @objc open func setupScrollDirection() {
         switch self.readerConfig.scrollDirection {
         case .vertical, .defaultVertical:
+            // Traditional vertical scrolling - no paging, continuous scroll
             scrollView.isPagingEnabled = false
             scrollView.bounces = true
-            // Remove any column CSS for vertical scrolling
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnCount = 'auto';", completionHandler: nil)
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '0px';", completionHandler: nil)
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnFill = 'auto';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnCount = 'auto';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnGap = '0px';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnFill = 'auto';", completionHandler: nil)
+            scrollView.alwaysBounceVertical = true
+            scrollView.alwaysBounceHorizontal = false
+
+            // Remove any CSS columns to allow normal flow
+            self.evaluateJavaScript("""
+                document.documentElement.style.webkitColumnCount = 'auto';
+                document.documentElement.style.webkitColumnWidth = 'auto';
+                document.documentElement.style.webkitColumnGap = '0px';
+                document.documentElement.style.height = 'auto';
+                document.body.style.webkitColumnCount = 'auto';
+                document.body.style.webkitColumnWidth = 'auto';
+                document.body.style.webkitColumnGap = '0px';
+                document.body.style.height = 'auto';
+                document.body.style.overflow = 'visible';
+            """, completionHandler: nil)
             break
+
         case .horizontal:
+            // Traditional horizontal paging - content flows in columns
             scrollView.isPagingEnabled = true
             scrollView.bounces = false
-            // Set up CSS columns for horizontal paging
-            let pageWidth = Int(self.frame.width)
+            scrollView.alwaysBounceVertical = false
+            scrollView.alwaysBounceHorizontal = false
+
+            let pageWidth = Int(self.frame.width - 40) // Account for padding
             let columnGap = 40
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnFill = 'auto';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnFill = 'auto';", completionHandler: nil)
+
+            self.evaluateJavaScript("""
+                document.documentElement.style.webkitColumnWidth = '\(pageWidth)px';
+                document.documentElement.style.webkitColumnGap = '\(columnGap)px';
+                document.documentElement.style.webkitColumnFill = 'auto';
+                document.documentElement.style.height = '100vh';
+                document.body.style.webkitColumnWidth = '\(pageWidth)px';
+                document.body.style.webkitColumnGap = '\(columnGap)px';
+                document.body.style.webkitColumnFill = 'auto';
+                document.body.style.height = '100vh';
+                document.body.style.overflow = 'hidden';
+            """, completionHandler: nil)
             break
+
         case .horizontalWithVerticalContent:
-            scrollView.isPagingEnabled = true
-            scrollView.bounces = false
-            // Set up CSS columns for horizontal paging with vertical content
-            let pageWidth = Int(self.frame.width)
-            let columnGap = 40
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.documentElement.style.webkitColumnFill = 'auto';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnWidth = '\(pageWidth)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnGap = '\(columnGap)px';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.webkitColumnFill = 'auto';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.height = '\(Int(self.frame.height))px';", completionHandler: nil)
-            self.evaluateJavaScript("document.body.style.overflow = 'hidden';", completionHandler: nil)
+            // Hybrid mode - pages turn horizontally but content flows vertically within each page
+            scrollView.isPagingEnabled = false // Let the web view handle its own scrolling
+            scrollView.bounces = true
+            scrollView.alwaysBounceVertical = true
+            scrollView.alwaysBounceHorizontal = false
+
+            // Set up the content to flow vertically within the page boundaries
+            let pageWidth = Int(self.frame.width - 40) // Account for padding
+
+            self.evaluateJavaScript("""
+                // Remove any column layout
+                document.documentElement.style.webkitColumnCount = 'auto';
+                document.documentElement.style.webkitColumnWidth = 'auto';
+                document.documentElement.style.webkitColumnGap = '0px';
+                document.documentElement.style.height = 'auto';
+
+                // Set up body for vertical content flow
+                document.body.style.webkitColumnCount = 'auto';
+                document.body.style.webkitColumnWidth = 'auto';
+                document.body.style.webkitColumnGap = '0px';
+                document.body.style.width = '\(pageWidth)px';
+                document.body.style.maxWidth = '\(pageWidth)px';
+                document.body.style.height = 'auto';
+                document.body.style.overflow = 'visible';
+
+                // Ensure content wraps properly
+                document.body.style.wordWrap = 'break-word';
+                document.body.style.overflowWrap = 'break-word';
+            """, completionHandler: nil)
             break
         }
     }

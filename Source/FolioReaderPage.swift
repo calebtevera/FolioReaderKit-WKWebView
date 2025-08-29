@@ -117,7 +117,6 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
     override open func layoutSubviews() {
         super.layoutSubviews()
 
-        webView?.setupScrollDirection()
         webView?.frame = webViewFrame()
     }
 
@@ -221,14 +220,20 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
             webView.isColors = false
             self.webView?.createMenu(options: false)
         })
-        
-        delegate?.pageDidLoad?(self)
-        
-        
     }
-    
-    public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        
+
+    open func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        guard let webView = webView as? FolioReaderWebView else { return }
+
+        // Setup scroll direction after content is fully loaded
+        delay(0.1) {
+            webView.setupScrollDirection()
+            self.delegate?.pageDidLoad?(self)
+        }
+    }
+
+    open func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+
         let request = navigationAction.request
         guard
             let webView = webView as? FolioReaderWebView,
