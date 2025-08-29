@@ -415,7 +415,7 @@ open class FolioReaderWebView: WKWebView {
         switch self.readerConfig.scrollDirection {
         case .vertical, .defaultVertical:
             scrollView.isPagingEnabled = false
-            scrollView.bounces = false
+            scrollView.bounces = true
             // Remove any column CSS for vertical scrolling
             self.evaluateJavaScript("document.documentElement.style.webkitColumnCount = 'auto';", completionHandler: nil)
             self.evaluateJavaScript("document.documentElement.style.webkitColumnGap = '0px';", completionHandler: nil)

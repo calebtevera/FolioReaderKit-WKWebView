@@ -3,7 +3,6 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
-        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -19,50 +18,109 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <button opaque="NO" tag="1" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4VN-zC-gTV">
-                                <color key="backgroundColor" red="0.66666666666666663" green="0.66666666666666663" blue="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <!-- Title Label -->
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="FolioReader Scroll Direction Demo" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="title-label">
+                                <rect key="frame" x="20" y="40" width="335" height="30"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="24"/>
+                                <color key="textColor" red="0.2" green="0.2" blue="0.2" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+
+                            <!-- Book Cover Image -->
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="book-cover">
+                                <rect key="frame" x="137.5" y="90" width="100" height="140"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="235" id="4Do-x7-Zyi"/>
-                                    <constraint firstAttribute="width" secondItem="4VN-zC-gTV" secondAttribute="height" multiplier="28:40" id="yIh-Rk-XlF"/>
+                                    <constraint firstAttribute="width" constant="100" id="book-width"/>
+                                    <constraint firstAttribute="height" constant="140" id="book-height"/>
                                 </constraints>
-                                <color key="tintColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </imageView>
+
+                            <!-- Description Label -->
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Experience the same book with different scroll directions. Each mode offers a unique reading experience." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="description-label">
+                                <rect key="frame" x="20" y="250" width="335" height="60"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                <color key="textColor" red="0.4" green="0.4" blue="0.4" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+
+                            <!-- Vertical Button -->
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vertical-btn">
+                                <rect key="frame" x="20" y="330" width="335" height="60"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="60" id="vertical-height"/>
+                                </constraints>
+                                <state key="normal" title="📖 Vertical Scroll"/>
                                 <connections>
-                                    <action selector="didOpen:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="Ibf-j6-YlH"/>
+                                    <action selector="openVerticalMode:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="vertical-action"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" tag="2" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="vdn-HF-kCC">
-                                <color key="backgroundColor" red="0.66666666666666663" green="0.66666666666666663" blue="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+
+                            <!-- Horizontal Button -->
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="horizontal-btn">
+                                <rect key="frame" x="20" y="410" width="335" height="60"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" secondItem="vdn-HF-kCC" secondAttribute="height" multiplier="28:40" id="9fo-qU-rt1"/>
+                                    <constraint firstAttribute="height" constant="60" id="horizontal-height"/>
                                 </constraints>
+                                <state key="normal" title="📚 Horizontal Pages"/>
                                 <connections>
-                                    <action selector="didOpen:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="M8S-eM-283"/>
+                                    <action selector="openHorizontalMode:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="horizontal-action"/>
+                                </connections>
+                            </button>
+
+                            <!-- Horizontal with Vertical Button -->
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hybrid-btn">
+                                <rect key="frame" x="20" y="490" width="335" height="60"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="60" id="hybrid-height"/>
+                                </constraints>
+                                <state key="normal" title="📄 Hybrid Mode"/>
+                                <connections>
+                                    <action selector="openHorizontalWithVerticalMode:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="hybrid-action"/>
                                 </connections>
                             </button>
                         </subviews>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.97" green="0.97" blue="0.97" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="4VN-zC-gTV" firstAttribute="leading" secondItem="vdn-HF-kCC" secondAttribute="leading" id="O6h-O5-Mm3"/>
-                            <constraint firstItem="4VN-zC-gTV" firstAttribute="trailing" secondItem="vdn-HF-kCC" secondAttribute="trailing" id="WFt-MO-d3s"/>
-                            <constraint firstItem="vdn-HF-kCC" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="Yo1-zt-m3U"/>
-                            <constraint firstItem="4VN-zC-gTV" firstAttribute="leading" secondItem="vdn-HF-kCC" secondAttribute="trailing" constant="-185" id="ZQK-9H-WO5"/>
-                            <constraint firstItem="vdn-HF-kCC" firstAttribute="top" secondItem="4VN-zC-gTV" secondAttribute="bottom" constant="24" id="cmd-b3-LGv"/>
-                            <constraint firstItem="4VN-zC-gTV" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="44" id="iMP-kv-hwb"/>
+                            <!-- Title constraints -->
+                            <constraint firstItem="title-label" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" constant="20" id="title-top"/>
+                            <constraint firstItem="title-label" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="title-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="title-label" secondAttribute="trailing" constant="20" id="title-trailing"/>
+
+                            <!-- Book cover constraints -->
+                            <constraint firstItem="book-cover" firstAttribute="top" secondItem="title-label" secondAttribute="bottom" constant="20" id="cover-top"/>
+                            <constraint firstItem="book-cover" firstAttribute="centerX" secondItem="kh9-bI-dsS" secondAttribute="centerX" id="cover-centerX"/>
+
+                            <!-- Description constraints -->
+                            <constraint firstItem="description-label" firstAttribute="top" secondItem="book-cover" secondAttribute="bottom" constant="20" id="desc-top"/>
+                            <constraint firstItem="description-label" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="desc-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="description-label" secondAttribute="trailing" constant="20" id="desc-trailing"/>
+
+                            <!-- Button constraints -->
+                            <constraint firstItem="vertical-btn" firstAttribute="top" secondItem="description-label" secondAttribute="bottom" constant="20" id="vertical-top"/>
+                            <constraint firstItem="vertical-btn" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="vertical-leading"/>
+                            <constraint firstItem="trailing" secondItem="vertical-btn" secondAttribute="trailing" constant="20" id="vertical-trailing"/>
+
+                            <constraint firstItem="horizontal-btn" firstAttribute="top" secondItem="vertical-btn" secondAttribute="bottom" constant="20" id="horizontal-top"/>
+                            <constraint firstItem="horizontal-btn" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="horizontal-leading"/>
+                            <constraint firstItem="trailing" secondItem="horizontal-btn" secondAttribute="trailing" constant="20" id="horizontal-trailing"/>
+
+                            <constraint firstItem="hybrid-btn" firstAttribute="top" secondItem="horizontal-btn" secondAttribute="bottom" constant="20" id="hybrid-top"/>
+                            <constraint firstItem="hybrid-btn" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="20" id="hybrid-leading"/>
+                            <constraint firstItem="trailing" secondItem="hybrid-btn" secondAttribute="trailing" constant="20" id="hybrid-trailing"/>
                         </constraints>
-                        <variation key="default">
-                            <mask key="constraints">
-                                <exclude reference="ZQK-9H-WO5"/>
-                            </mask>
-                        </variation>
                     </view>
                     <connections>
-                        <outlet property="bookOne" destination="4VN-zC-gTV" id="Yau-yI-OXs"/>
-                        <outlet property="bookTwo" destination="vdn-HF-kCC" id="XU5-jB-OaP"/>
+                        <outlet property="titleLabel" destination="title-label" id="title-outlet"/>
+                        <outlet property="bookCoverImageView" destination="book-cover" id="cover-outlet"/>
+                        <outlet property="descriptionLabel" destination="description-label" id="desc-outlet"/>
+                        <outlet property="verticalButton" destination="vertical-btn" id="vertical-outlet"/>
+                        <outlet property="horizontalButton" destination="horizontal-btn" id="horizontal-outlet"/>
+                        <outlet property="horizontalWithVerticalButton" destination="hybrid-btn" id="hybrid-outlet"/>
                     </connections>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="340" y="392"/>
+            <point key="canvasLocation" x="117" y="123"/>
         </scene>
     </scenes>
 </document>
