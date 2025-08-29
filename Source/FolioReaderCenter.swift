@@ -356,7 +356,7 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         guard
             (self.collectionView != nil),
             (self.currentPage != nil),
-            let currentPage = self.getCurrentPage(),
+            let currentPage = self.currentPage,
             let webView = currentPage.webView else {
                 return
         }
