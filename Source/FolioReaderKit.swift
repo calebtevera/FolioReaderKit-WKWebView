@@ -270,7 +270,9 @@ extension FolioReader {
     /// Check the current scroll direction. Default .defaultVertical
     open var currentScrollDirection: Int {
         get {
-            guard let value = self.defaults.value(forKey: kCurrentScrollDirection) as? Int else {
+            let value = self.defaults.integer(forKey: kCurrentScrollDirection)
+
+            if value == 0 {
                 return FolioReaderScrollDirection.defaultVertical.rawValue
             }
 
@@ -280,7 +282,7 @@ extension FolioReader {
             self.defaults.set(value, forKey: kCurrentScrollDirection)
 
             let direction = (FolioReaderScrollDirection(rawValue: currentScrollDirection) ?? .defaultVertical)
-            self.readerCenter?.setScrollDirection(direction)
+            self.readerCenter?.changeScrollDirection(direction)
         }
     }
 
