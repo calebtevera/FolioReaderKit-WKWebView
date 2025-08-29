@@ -29,8 +29,8 @@ enum Epub: Int {
 
     var scrollDirection: FolioReaderScrollDirection {
         switch self {
-        case .bookOne:      return .vertical
-        case .bookTwo:      return .horizontal
+        case .bookOne:      return .horizontalWithVerticalContent
+        case .bookTwo:      return .horizontalWithVerticalContent
         }
     }
 

@@ -13,7 +13,7 @@ class BookTwoExampleFolioReaderContainer: BaseExampleFolioReaderContainer {
 
     override var exampleReaderConfig: FolioReaderConfig {
         let config = FolioReaderConfig(withIdentifier: "STORYBOARD_READER_TWO")
-        config.scrollDirection = .vertical
+        config.scrollDirection = .horizontalWithVerticalContent
         config.shouldHideNavigationOnTap = false
 
         return config

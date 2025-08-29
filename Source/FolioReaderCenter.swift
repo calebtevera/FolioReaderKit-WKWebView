@@ -349,17 +349,24 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         self.pageOffsetRate = (contentSize != 0 ? (contentOffset / contentSize) : 0)
     }
 
-    func setScrollDirection(_ direction: FolioReaderScrollDirection) {
-        guard let currentPage = self.currentPage, let webView = currentPage.webView else {
-            return
+    func changeScrollDirection(_ direction: FolioReaderScrollDirection) {
+        // Always force horizontal with vertical content, ignore any requested direction changes
+        let forcedDirection = FolioReaderScrollDirection.horizontalWithVerticalContent
+
+        guard
+            (self.collectionView != nil),
+            (self.currentPage != nil),
+            let currentPage = self.getCurrentPage(),
+            let webView = currentPage.webView else {
+                return
         }
 
         let pageScrollView = webView.scrollView
 
         // Get internal page offset before layout change
         self.updatePageOffsetRate()
-        // Change layout
-        self.readerConfig.scrollDirection = direction
+        // Change layout - always use horizontalWithVerticalContent
+        self.readerConfig.scrollDirection = forcedDirection
         self.collectionViewLayout.scrollDirection = .direction(withConfiguration: self.readerConfig)
         self.currentPage?.setNeedsLayout()
         self.collectionView.collectionViewLayout.invalidateLayout()
