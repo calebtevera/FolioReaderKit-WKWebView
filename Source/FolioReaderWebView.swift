@@ -411,7 +411,7 @@ open class FolioReaderWebView: WKWebView {
         self.isUserInteractionEnabled = true
     }
     
-    func setupScrollDirection() {
+    open func setupScrollDirection() {
         switch self.readerConfig.scrollDirection {
         case .vertical, .defaultVertical:
             scrollView.isPagingEnabled = false
