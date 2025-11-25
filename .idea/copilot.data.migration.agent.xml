@@ -11,6 +11,8 @@
           <value>
             <set>
               <option value="65874d0d-06cc-4af1-9aa9-21da017ea669" />
+              <option value="99d61549-5efa-433a-8f1c-91f7dbd0fbb8" />
+              <option value="8322163a-15ac-439e-86f5-4015f168271f" />
             </set>
           </value>
         </entry>
@@ -27,6 +29,7 @@
       <entry key="7aa8c0d6-632a-440c-8117-2a0eac2d0bf8">
         <set>
           <option value="file://$PROJECT_DIR$/Source/FolioReaderConfig.swift" />
+          <option value="file://$PROJECT_DIR$/Source/FolioReaderPage.swift" />
         </set>
       </entry>
       <entry key="a57ec632-b15f-41aa-a941-fc5ff6aaa377">

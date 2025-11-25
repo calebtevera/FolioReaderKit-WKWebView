@@ -170,8 +170,27 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
                 // Try to find the EPUB root directory for even broader access
                 let epubRootDirectory = self.findEpubRootDirectory(from: folder)
 
-                // Load file and allow reading the entire EPUB directory tree
-                webView?.loadFileURL(tempHtmlFile, allowingReadAccessTo: epubRootDirectory)
+                // Choose the best read-access directory. If the found root is the app bundle
+                // (e.g. ends with .app) or otherwise looks invalid, fall back to the folder
+                // containing the temp HTML file to avoid sandbox extension failures.
+                let fileManager = FileManager.default
+                var readAccessURL = epubRootDirectory
+
+                // If the found root is the app bundle or does not contain META-INF, fall back
+                if epubRootDirectory.pathExtension.lowercased() == "app" || epubRootDirectory.path.contains("/Bundle/") {
+                    readAccessURL = folder
+                } else {
+                    // Verify META-INF exists at the found root; if not, fallback
+                    let metaInfPath = epubRootDirectory.appendingPathComponent("META-INF").path
+                    if !fileManager.fileExists(atPath: metaInfPath) {
+                        readAccessURL = folder
+                    }
+                }
+
+                print("FolioReader: loadFileURL tempHtmlFile=\(tempHtmlFile.path) allowingReadAccessTo=\(readAccessURL.path)")
+
+                // Load file and allow reading the appropriate directory tree
+                webView?.loadFileURL(tempHtmlFile, allowingReadAccessTo: readAccessURL)
 
                 // Clean up temp file after a delay to ensure it has loaded
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
