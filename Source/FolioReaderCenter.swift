@@ -479,16 +479,36 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 
         let mediaOverlayStyleColors = "\"\(self.readerConfig.mediaOverlayColor.hexString(false))\", \"\(self.readerConfig.mediaOverlayColor.highlightColor().hexString(false))\""
 
-        // Inject CSS
-        let jsFilePath = Bundle.frameworkBundle().path(forResource: "Bridge", ofType: "js")
-        let cssFilePath = Bundle.frameworkBundle().path(forResource: "Style", ofType: "css")
+        // Inject CSS/JS without referencing app bundle file URLs to avoid sandbox extension errors on device.
         let googleFonts = "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Sarabun\">"
-        let cssTag = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(cssFilePath!)\">"
-        let jsTag = "<script type=\"text/javascript\" src=\"\(jsFilePath!)\"></script>" +
-        "<script type=\"text/javascript\">setMediaOverlayStyleColors(\(mediaOverlayStyleColors))</script>"
-
-        let toInject = "\n\(cssTag)\n\(jsTag)\n\(googleFonts)\n</head>"
-        html = html.replacingOccurrences(of: "</head>", with: toInject)
+        var cssInlineTag = ""
+        var jsInlineTag = ""
+        if let cssPath = Bundle.frameworkBundle().path(forResource: "Style", ofType: "css"),
+           let cssContent = try? String(contentsOfFile: cssPath, encoding: .utf8) {
+            cssInlineTag = "<style>\n\(cssContent)\n</style>"
+        }
+        if let jsPath = Bundle.frameworkBundle().path(forResource: "Bridge", ofType: "js"),
+           var jsContent = try? String(contentsOfFile: jsPath, encoding: .utf8) {
+            jsContent += "\n;try{setMediaOverlayStyleColors(\(mediaOverlayStyleColors));}catch(e){}\n"
+            jsInlineTag = "<script type=\"text/javascript\">\n/*<![CDATA[]*/\n\(jsContent)\n/*[CDATA[>*/\n</script>"
+        }
+        if !cssInlineTag.isEmpty && !jsInlineTag.isEmpty {
+            let toInject = "\n\(cssInlineTag)\n\(jsInlineTag)\n\(googleFonts)\n</head>"
+            html = html.replacingOccurrences(of: "</head>", with: toInject)
+        } else {
+            // Fallback to legacy tags if inline reading fails (e.g. missing files)
+            let jsFilePath = Bundle.frameworkBundle().path(forResource: "Bridge", ofType: "js")
+            let cssFilePath = Bundle.frameworkBundle().path(forResource: "Style", ofType: "css")
+            if let jsFilePath = jsFilePath, let cssFilePath = cssFilePath {
+                let cssTag = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(cssFilePath)\">"
+                let jsTag = "<script type=\"text/javascript\" src=\"\(jsFilePath)\"></script>" +
+                    "<script type=\"text/javascript\">setMediaOverlayStyleColors(\(mediaOverlayStyleColors))</script>"
+                let toInject = "\n\(cssTag)\n\(jsTag)\n\(googleFonts)\n</head>"
+                html = html.replacingOccurrences(of: "</head>", with: toInject)
+            } else {
+                html = html.replacingOccurrences(of: "</head>", with: "\n\(googleFonts)\n</head>")
+            }
+        }
 
         // Font class name
         var classes = folioReader.currentFont.cssIdentifier
