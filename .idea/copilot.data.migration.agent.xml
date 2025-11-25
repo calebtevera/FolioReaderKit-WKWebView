@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AgentMigrationStateService">
+    <option name="pendingSessionIds">
+      <option value="7aa8c0d6-632a-440c-8117-2a0eac2d0bf8" />
+      <option value="a57ec632-b15f-41aa-a941-fc5ff6aaa377" />
+    </option>
+    <option name="pendingTurns">
+      <map>
+        <entry key="7aa8c0d6-632a-440c-8117-2a0eac2d0bf8">
+          <value>
+            <set>
+              <option value="65874d0d-06cc-4af1-9aa9-21da017ea669" />
+            </set>
+          </value>
+        </entry>
+        <entry key="a57ec632-b15f-41aa-a941-fc5ff6aaa377">
+          <value>
+            <set>
+              <option value="ba627148-58b8-448e-a266-f6772dc7df80" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <pendingWorkingSetItems>
+      <entry key="7aa8c0d6-632a-440c-8117-2a0eac2d0bf8">
+        <set>
+          <option value="file://$PROJECT_DIR$/Source/FolioReaderConfig.swift" />
+        </set>
+      </entry>
+      <entry key="a57ec632-b15f-41aa-a941-fc5ff6aaa377">
+        <set>
+          <option value="file://$PROJECT_DIR$/Example/Shared/Epub.swift" />
+          <option value="file://$PROJECT_DIR$/Example/Example/ViewController.swift" />
+          <option value="file://$PROJECT_DIR$/Example/DEMO_README.md" />
+          <option value="file://$PROJECT_DIR$/Example/SETUP_COMPLETE.md" />
+          <option value="file://$PROJECT_DIR$/Example/Example.xcodeproj/project.pbxproj" />
+          <option value="file://$PROJECT_DIR$/Example/PROBLEM_FIXED.md" />
+          <option value="file://$PROJECT_DIR$/Source/FolioReaderWebView.swift" />
+          <option value="file://$PROJECT_DIR$/Source/FolioReaderPage.swift" />
+          <option value="file://$PROJECT_DIR$/FolioReaderKit/Info.plist" />
+          <option value="file://$PROJECT_DIR$/Example/Example/Info.plist" />
+          <option value="file://$PROJECT_DIR$/Example/Storyboard-Example/Info.plist" />
+          <option value="file://$PROJECT_DIR$/Example/MultipleInstances-Example/Info.plist" />
+          <option value="file://$PROJECT_DIR$/WKWEBVIEW_FILE_ACCESS_COMPLETE.md" />
+          <option value="file://$PROJECT_DIR$/WKWEBVIEW_QUICK_REFERENCE.md" />
+        </set>
+      </entry>
+    </pendingWorkingSetItems>
+  </component>
+</project>
