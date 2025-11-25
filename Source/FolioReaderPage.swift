@@ -839,4 +839,30 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         }
     }
     
+    /// Sanitize a string by removing absolute file:// and bundle references (best-effort).
+    /// This prevents WKWebView from requesting resources inside the .app bundle or other protected paths.
+    private func sanitizeFileReferences(in input: String) -> String {
+        var result = input
+        let fullRange = NSRange(location: 0, length: (result as NSString).length)
+
+        // Remove file://... occurrences
+        if let fileRegex = try? NSRegularExpression(pattern: "file://[^\"'\s)]+", options: [.caseInsensitive]) {
+            result = fileRegex.stringByReplacingMatches(in: result, options: [], range: fullRange, withTemplate: "")
+        }
+
+        // Remove /var/containers/Bundle/Application... occurrences
+        if let bundleRegex = try? NSRegularExpression(pattern: "/var/containers/Bundle/Application[^\"'\s)]*", options: []) {
+            result = bundleRegex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: (result as NSString).length), withTemplate: "")
+        }
+
+        // Remove direct bundle path occurrences
+        let bundlePath = Bundle.main.bundlePath
+        if !bundlePath.isEmpty {
+            result = result.replacingOccurrences(of: bundlePath, with: "")
+            result = result.replacingOccurrences(of: "file://\(bundlePath)", with: "")
+        }
+
+        return result
+    }
+
 }
