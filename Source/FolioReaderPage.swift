@@ -845,13 +845,13 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         var result = input
         let fullRange = NSRange(location: 0, length: (result as NSString).length)
 
-        // Remove file://... occurrences
-        if let fileRegex = try? NSRegularExpression(pattern: "file://[^\"'\s)]+", options: [.caseInsensitive]) {
+        // Remove file://... occurrences (use raw string to avoid Swift escape issues)
+        if let fileRegex = try? NSRegularExpression(pattern: #"file://[^"'\s)]+"#, options: [.caseInsensitive]) {
             result = fileRegex.stringByReplacingMatches(in: result, options: [], range: fullRange, withTemplate: "")
         }
 
-        // Remove /var/containers/Bundle/Application... occurrences
-        if let bundleRegex = try? NSRegularExpression(pattern: "/var/containers/Bundle/Application[^\"'\s)]*", options: []) {
+        // Remove /var/containers/Bundle/Application... occurrences (use raw string to avoid Swift escape issues)
+        if let bundleRegex = try? NSRegularExpression(pattern: #"/var/containers/Bundle/Application[^"'\s)]*"#, options: []) {
             result = bundleRegex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: (result as NSString).length), withTemplate: "")
         }
 
