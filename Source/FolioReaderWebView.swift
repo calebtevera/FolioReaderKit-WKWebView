@@ -37,7 +37,18 @@ open class FolioReaderWebView: WKWebView {
     init(frame: CGRect, readerContainer: FolioReaderContainer) {
         self.readerContainer = readerContainer
         
+        // Configure WKWebView preferences
+        let preferences = WKPreferences()
+        preferences.javaScriptEnabled = true
+
         let configuration = WKWebViewConfiguration()
+        configuration.preferences = preferences
+
+        // ⭐ CRITICAL: Enable file access for EPUB resources on real iOS devices
+        // Without these, images and CSS fail to load on physical devices
+        configuration.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        configuration.setValue(true, forKey: "allowFileAccessFromFileURLs")
+
         if #available(iOS 10.0, *) {
             configuration.dataDetectorTypes = .link
         } else {

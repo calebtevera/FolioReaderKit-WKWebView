@@ -143,7 +143,71 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         let tempHtmlContent = htmlContentWithInsertHighlights(htmlContent)
         // Load the html into the webview
         webView?.alpha = 0
-        webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+
+        // Check if improved file loading is enabled
+        guard readerConfig.useImprovedFileLoading else {
+            // Use legacy loading method
+            webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+            return
+        }
+
+        // iOS 9+ requires loadFileURL for proper local file access on real devices
+        // WKWebView security prevents loadHTMLString from accessing local resources on physical devices
+        if #available(iOS 9.0, *) {
+            // Write HTML to a temporary file in the same directory as the EPUB content
+            // This ensures relative paths work correctly
+            let baseDirectory = baseURL.deletingLastPathComponent()
+            let tempFileName = "temp_folio_\(UUID().uuidString).html"
+            let tempHtmlFile = baseDirectory.appendingPathComponent(tempFileName)
+
+            do {
+                try tempHtmlContent.write(to: tempHtmlFile, atomically: true, encoding: .utf8)
+
+                // ⭐ CRITICAL: Grant read access to the ENTIRE FOLDER, not just the file
+                // iOS MUST be allowed to read the whole folder to access images/CSS/fonts
+                let folder = tempHtmlFile.deletingLastPathComponent()
+
+                // Try to find the EPUB root directory for even broader access
+                let epubRootDirectory = self.findEpubRootDirectory(from: folder)
+
+                // Load file and allow reading the entire EPUB directory tree
+                webView?.loadFileURL(tempHtmlFile, allowingReadAccessTo: epubRootDirectory)
+
+                // Clean up temp file after a delay to ensure it has loaded
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    try? FileManager.default.removeItem(at: tempHtmlFile)
+                }
+            } catch {
+                print("FolioReader: Failed to write temp HTML file, falling back to loadHTMLString: \(error)")
+                webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+            }
+        } else {
+            // Fallback for iOS 8
+            webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+        }
+    }
+
+    /// Find the EPUB root directory by traversing up until we find a directory containing META-INF
+    private func findEpubRootDirectory(from url: URL) -> URL {
+        var currentURL = url
+        let fileManager = FileManager.default
+
+        // Traverse up to find the EPUB root (contains META-INF folder)
+        for _ in 0..<10 { // Limit iterations to prevent infinite loop
+            let metaInfPath = currentURL.appendingPathComponent("META-INF")
+            if fileManager.fileExists(atPath: metaInfPath.path) {
+                return currentURL
+            }
+
+            let parentURL = currentURL.deletingLastPathComponent()
+            if parentURL.path == currentURL.path {
+                break // Reached root of filesystem
+            }
+            currentURL = parentURL
+        }
+
+        // If META-INF not found, return the original URL (best effort)
+        return url
     }
 
     // MARK: - Highlights
