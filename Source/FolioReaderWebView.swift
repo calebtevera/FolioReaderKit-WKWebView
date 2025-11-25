@@ -46,8 +46,15 @@ open class FolioReaderWebView: WKWebView {
 
         // ⭐ CRITICAL: Enable file access for EPUB resources on real iOS devices
         // Without these, images and CSS fail to load on physical devices
-        configuration.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
-        configuration.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        // These keys are private and may not exist on some iOS versions. Check for the setter selector before calling KVC to avoid crashing with NSUnknownKeyException.
+        let selAllowUniversal = NSSelectorFromString("setAllowUniversalAccessFromFileURLs:")
+        let selAllowFileAccess = NSSelectorFromString("setAllowFileAccessFromFileURLs:")
+        if configuration.responds(to: selAllowUniversal) {
+            configuration.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        }
+        if configuration.responds(to: selAllowFileAccess) {
+            configuration.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        }
 
         if #available(iOS 10.0, *) {
             configuration.dataDetectorTypes = .link
