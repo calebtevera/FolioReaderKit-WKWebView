@@ -176,25 +176,194 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
                 let fileManager = FileManager.default
                 var readAccessURL = epubRootDirectory
 
-                // If the found root is the app bundle or does not contain META-INF, fall back
+                // If the found root is the app bundle or does not contain META-INF, fallback to using a temp copy
+                var shouldUseTempCopy = false
                 if epubRootDirectory.pathExtension.lowercased() == "app" || epubRootDirectory.path.contains("/Bundle/") {
-                    readAccessURL = folder
+                    shouldUseTempCopy = true
                 } else {
                     // Verify META-INF exists at the found root; if not, fallback
                     let metaInfPath = epubRootDirectory.appendingPathComponent("META-INF").path
                     if !fileManager.fileExists(atPath: metaInfPath) {
-                        readAccessURL = folder
+                        shouldUseTempCopy = true
                     }
                 }
 
-                print("FolioReader: loadFileURL tempHtmlFile=\(tempHtmlFile.path) allowingReadAccessTo=\(readAccessURL.path)")
+                if shouldUseTempCopy {
+                    // Create a unique temporary folder for this EPUB copy
+                    let tempRoot = fileManager.temporaryDirectory.appendingPathComponent("FolioReader/").appendingPathComponent(UUID().uuidString)
+                    do {
+                        try fileManager.createDirectory(at: tempRoot, withIntermediateDirectories: true, attributes: nil)
 
-                // Load file and allow reading the appropriate directory tree
-                webView?.loadFileURL(tempHtmlFile, allowingReadAccessTo: readAccessURL)
+                        // Copy EPUB contents (children of epubRootDirectory) into tempRoot
+                        let items = try fileManager.contentsOfDirectory(atPath: epubRootDirectory.path)
+                        for item in items {
+                            let src = epubRootDirectory.appendingPathComponent(item)
+                            let dst = tempRoot.appendingPathComponent(item)
+                            // If item already exists at destination, remove first
+                            if fileManager.fileExists(atPath: dst.path) {
+                                try? fileManager.removeItem(at: dst)
+                            }
+                            try fileManager.copyItem(at: src, to: dst)
+                        }
 
-                // Clean up temp file after a delay to ensure it has loaded
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                    try? FileManager.default.removeItem(at: tempHtmlFile)
+                        // After copying, sanitize text assets inside the tempRoot to remove any file:// references to the app bundle or other private paths
+                        let textExtensions: Set<String> = ["html", "htm", "xhtml", "css", "js", "svg", "xml", "json", "txt"]
+                        var totalReplacements = 0
+                        if let enumerator = fileManager.enumerator(at: tempRoot, includingPropertiesForKeys: nil) {
+                            for case let fileURL as URL in enumerator {
+                                let ext = fileURL.pathExtension.lowercased()
+                                if textExtensions.contains(ext) {
+                                    do {
+                                        var content = try String(contentsOf: fileURL, encoding: .utf8)
+                                        var fileReplacements = 0
+
+                                        // Replace occurrences of the app bundle path
+                                        let bundlePath = Bundle.main.bundlePath
+                                        let bundleFilePrefix = "file://\(bundlePath)"
+                                        if content.contains(bundleFilePrefix) {
+                                            content = content.replacingOccurrences(of: bundleFilePrefix, with: "")
+                                            fileReplacements += 1
+                                        }
+
+                                        // Replace absolute bundle file references like file:///var/containers/Bundle/Application
+                                        let bundleContainersPrefix = "file:///var/containers/Bundle/Application"
+                                        if content.contains(bundleContainersPrefix) {
+                                            content = content.replacingOccurrences(of: bundleContainersPrefix, with: "")
+                                            fileReplacements += 1
+                                        }
+
+                                        // Remove any file:/// references that contain ".app/" which are likely pointing into the bundle
+                                        if content.contains(".app/") {
+                                            content = content.replacingOccurrences(of: "file://", with: "")
+                                            fileReplacements += 1
+                                        }
+
+                                        // Also remove leading slashes from resource attributes so they become relative paths
+                                        // e.g. src="/images/x.png" -> src="images/x.png" to avoid resolving to the filesystem root or app bundle
+                                        let attributesToFix = ["src", "href", "poster", "data-src", "srcset"]
+                                        for attr in attributesToFix {
+                                            content = content.replacingOccurrences(of: "\(attr)=\"/", with: "\(attr)=\"")
+                                            content = content.replacingOccurrences(of: "\(attr)='/", with: "\(attr)='")
+                                            // Also fix occurrences with single quotes inside srcset values or data- attributes
+                                            content = content.replacingOccurrences(of: " \(attr)=\"/", with: " \(attr)=\"")
+                                            content = content.replacingOccurrences(of: " \(attr)='/", with: " \(attr)='")
+                                        }
+
+                                        // Fix CSS url(/...) patterns
+                                        content = content.replacingOccurrences(of: "url(\"/", with: "url(\"")
+                                        content = content.replacingOccurrences(of: "url('/", with: "url('")
+                                        content = content.replacingOccurrences(of: "url(/", with: "url(")
+
+                                        // Run regex-based sanitizer to remove any remaining absolute file references
+                                        content = sanitizeFileReferences(in: content)
+
+                                        if fileReplacements > 0 {
+                                            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+                                            totalReplacements += fileReplacements
+                                        }
+                                    } catch {
+                                        // Ignore file read/write errors for binary or locked files
+                                    }
+                                }
+                            }
+                        }
+
+                        if totalReplacements > 0 {
+                            print("FolioReader: sanitized temp copy assets, total replacements=\(totalReplacements)")
+                        }
+
+                        // Move the temp HTML we already wrote into the tempRoot
+                        let newTempHtml = tempRoot.appendingPathComponent(tempFileName)
+
+                        // Sanitize the HTML to avoid references to the app bundle or other private file paths
+                        var sanitizedHtml = tempHtmlContent
+                        var replacements = 0
+
+                        // Run regex sanitizer first to catch any tricky absolute paths
+                        sanitizedHtml = sanitizeFileReferences(in: sanitizedHtml)
+
+                        // Replace occurrences of file://<app bundle path> which cause WebContent to request access to the .app bundle
+                        let bundlePath = Bundle.main.bundlePath
+                        let bundleFilePrefix = "file://\(bundlePath)"
+                        if sanitizedHtml.contains(bundleFilePrefix) {
+                            sanitizedHtml = sanitizedHtml.replacingOccurrences(of: bundleFilePrefix, with: "")
+                            replacements += 1
+                        }
+
+                        // Replace common absolute bundle file references (defensive)
+                        let bundleContainersPrefix = "file:///var/containers/Bundle/Application"
+                        if sanitizedHtml.contains(bundleContainersPrefix) {
+                            sanitizedHtml = sanitizedHtml.replacingOccurrences(of: bundleContainersPrefix, with: "")
+                            replacements += 1
+                        }
+
+                        // Also remove any direct file:/// references that contain ".app/" which are likely pointing into the bundle
+                        if sanitizedHtml.contains(".app/") {
+                            // Replace occurrences like file:///.../.app/ with just the path after the .app/ (best-effort)
+                            sanitizedHtml = sanitizedHtml.replacingOccurrences(of: "file://", with: "")
+                            replacements += 1
+                        }
+
+                        if fileManager.fileExists(atPath: tempHtmlFile.path) {
+                            // If move fails, try copy
+                            do {
+                                // Write sanitized HTML into the destination (prefer write over move to ensure content is updated)
+                                try sanitizedHtml.write(to: newTempHtml, atomically: true, encoding: .utf8)
+                                // Remove original tempHtmlFile
+                                try? fileManager.removeItem(at: tempHtmlFile)
+                            } catch {
+                                // If write fails, fallback to moving/copying original file
+                                do {
+                                    try fileManager.moveItem(at: tempHtmlFile, to: newTempHtml)
+                                } catch {
+                                    try? fileManager.copyItem(at: tempHtmlFile, to: newTempHtml)
+                                    try? fileManager.removeItem(at: tempHtmlFile)
+                                }
+                            }
+                        } else {
+                            // As a fallback write the html into the tempRoot
+                            try sanitizedHtml.write(to: newTempHtml, atomically: true, encoding: .utf8)
+                        }
+
+                        readAccessURL = tempRoot
+
+                        print("FolioReader: loadFileURL (using temp copy) tempHtmlFile=\(newTempHtml.path) allowingReadAccessTo=\(readAccessURL.path)")
+
+                        // Load file and allow reading the temporary copy directory
+                        webView?.loadFileURL(newTempHtml, allowingReadAccessTo: readAccessURL)
+
+                        // Clean up temp copy after a delay to ensure it has loaded
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                            try? fileManager.removeItem(at: tempRoot)
+                        }
+                    } catch {
+                        print("FolioReader: Failed to create temp EPUB copy, falling back. Error: \(error)")
+                        // Fallback to original folder read access (best effort)
+                        readAccessURL = folder
+                        print("FolioReader: loadFileURL tempHtmlFile=\(tempHtmlFile.path) allowingReadAccessTo=\(readAccessURL.path)")
+                        webView?.loadFileURL(tempHtmlFile, allowingReadAccessTo: readAccessURL)
+
+                        // Clean up temp file after a delay to ensure it has loaded
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                            try? fileManager.removeItem(at: tempHtmlFile)
+                        }
+                    }
+                } else {
+                    // Verify META-INF exists; otherwise fallback to folder
+                    let metaInfPath = epubRootDirectory.appendingPathComponent("META-INF").path
+                    if !fileManager.fileExists(atPath: metaInfPath) {
+                        readAccessURL = folder
+                    }
+
+                    print("FolioReader: loadFileURL tempHtmlFile=\(tempHtmlFile.path) allowingReadAccessTo=\(readAccessURL.path)")
+
+                    // Load file and allow reading the appropriate directory tree
+                    webView?.loadFileURL(tempHtmlFile, allowingReadAccessTo: readAccessURL)
+
+                    // Clean up temp file after a delay to ensure it has loaded
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                        try? fileManager.removeItem(at: tempHtmlFile)
+                    }
                 }
             } catch {
                 print("FolioReader: Failed to write temp HTML file, falling back to loadHTMLString: \(error)")
