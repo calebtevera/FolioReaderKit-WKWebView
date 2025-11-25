@@ -480,7 +480,8 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         let mediaOverlayStyleColors = "\"\(self.readerConfig.mediaOverlayColor.hexString(false))\", \"\(self.readerConfig.mediaOverlayColor.highlightColor().hexString(false))\""
 
         // Inject CSS/JS without referencing app bundle file URLs to avoid sandbox extension errors on device.
-        let googleFonts = "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Sarabun\">"
+        // Optionally include Google Fonts (external URL with query params) if enabled in config.
+        let googleFontsTag: String? = self.readerConfig.enableExternalGoogleFonts ? "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css?family=Sarabun\">" : nil
         var cssInlineTag = ""
         var jsInlineTag = ""
         if let cssPath = Bundle.frameworkBundle().path(forResource: "Style", ofType: "css"),
@@ -493,7 +494,8 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
             jsInlineTag = "<script type=\"text/javascript\">\n/*<![CDATA[]*/\n\(jsContent)\n/*[CDATA[>*/\n</script>"
         }
         if !cssInlineTag.isEmpty && !jsInlineTag.isEmpty {
-            let toInject = "\n\(cssInlineTag)\n\(jsInlineTag)\n\(googleFonts)\n</head>"
+            let gf = googleFontsTag != nil ? "\n\(googleFontsTag!)" : ""
+            let toInject = "\n\(cssInlineTag)\n\(jsInlineTag)\(gf)\n</head>"
             html = html.replacingOccurrences(of: "</head>", with: toInject)
         } else {
             // Fallback to legacy tags if inline reading fails (e.g. missing files)
@@ -503,10 +505,13 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
                 let cssTag = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(cssFilePath)\">"
                 let jsTag = "<script type=\"text/javascript\" src=\"\(jsFilePath)\"></script>" +
                     "<script type=\"text/javascript\">setMediaOverlayStyleColors(\(mediaOverlayStyleColors))</script>"
-                let toInject = "\n\(cssTag)\n\(jsTag)\n\(googleFonts)\n</head>"
+                let gf = googleFontsTag != nil ? "\n\(googleFontsTag!)" : ""
+                let toInject = "\n\(cssTag)\n\(jsTag)\(gf)\n</head>"
                 html = html.replacingOccurrences(of: "</head>", with: toInject)
             } else {
-                html = html.replacingOccurrences(of: "</head>", with: "\n\(googleFonts)\n</head>")
+                if let googleFontsTag = googleFontsTag {
+                    html = html.replacingOccurrences(of: "</head>", with: "\n\(googleFontsTag)\n</head>")
+                }
             }
         }
 

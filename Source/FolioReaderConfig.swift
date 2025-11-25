@@ -186,6 +186,13 @@ open class FolioReaderConfig: NSObject {
     /// - Note: `true` (default) enables the improved file loading behaviour needed for proper local file access on physical devices.
     open var useImprovedFileLoading: Bool = true
 
+    /// Controls whether the reader injects external Google Fonts CSS (which uses a URL with query parameters).
+    /// Some versions of WebKit log a noisy message like:
+    /// "Unable to hide query parameters from script (missing data)" when such URLs are present.
+    /// Default is `false` to avoid the log and external network calls. Set to `true` only if you specifically
+    /// want the Google "Sarabun" webfont loaded from https://fonts.googleapis.com.
+    open var enableExternalGoogleFonts: Bool = false
+
     /// Used to distinguish between multiple or different reader instances. The content of the user defaults (font settings etc.) depends on this identifier. The default is `nil`.
     open var identifier: String?
 
