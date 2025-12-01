@@ -18,6 +18,7 @@
               <option value="33d31625-aff2-4995-9f60-b67b13cdb457" />
               <option value="28948fb1-1da7-429a-aa63-085e42e67634" />
               <option value="07d00855-fe7d-49bc-9fe1-bf73c2a360de" />
+              <option value="c2303685-9ba7-4154-9d02-37a8a11f73cf" />
             </set>
           </value>
         </entry>
@@ -38,6 +39,8 @@
           <option value="file://$PROJECT_DIR$/SECURITY_QUICK_REFERENCE.md" />
           <option value="file://$PROJECT_DIR$/IMPLEMENTATION_COMPLETE.md" />
           <option value="file://$PROJECT_DIR$/REAL_DEVICE_IMAGE_FIX.md" />
+          <option value="file://$PROJECT_DIR$/Source/Models/Highlight+Helper.swift" />
+          <option value="file://$PROJECT_DIR$/ALL_ERRORS_FIXED.md" />
         </set>
       </entry>
     </pendingWorkingSetItems>
