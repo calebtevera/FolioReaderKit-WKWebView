@@ -22,6 +22,8 @@
               <option value="5aaaaef8-ec91-4e39-8b7f-64644b52d5b4" />
               <option value="b4582134-883d-4d08-8b76-5c847a33f242" />
               <option value="fce63e08-eecf-40b7-870c-226ecd01057e" />
+              <option value="84d24914-c916-4a86-a84f-d6fcbf011413" />
+              <option value="f7c3b51f-4ac4-4f74-b94b-b222665da20e" />
             </set>
           </value>
         </entry>
@@ -47,6 +49,8 @@
           <option value="file://$PROJECT_DIR$/REALM_API_FIX.md" />
           <option value="file://$PROJECT_DIR$/CRASH_FIX_NSUnknownKeyException.md" />
           <option value="file://$PROJECT_DIR$/CONTENT_NOT_SHOWING_FIX.md" />
+          <option value="file://$PROJECT_DIR$/FINAL_FIX_REALM_VERSION.md" />
+          <option value="file://$PROJECT_DIR$/IMPLEMENTATION_COMPLETE_FINAL.md" />
         </set>
       </entry>
     </pendingWorkingSetItems>
