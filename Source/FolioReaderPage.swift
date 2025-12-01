@@ -144,14 +144,9 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         // Load the html into the webview
         webView?.alpha = 0
 
-        // Real Device Fix: Use proper loading method for local files
-        if #available(iOS 9.0, *) {
-            // Write HTML to temp file and use loadFileURL for proper file access on real devices
-            loadHTMLContentWithFileAccess(tempHtmlContent, baseURL: baseURL)
-        } else {
-            // Fallback for older iOS versions
-            webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
-        }
+        // Use standard loadHTMLString for better compatibility
+        // The baseURL parameter grants access to the directory
+        webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
     }
 
     /// Load HTML content with proper file access permissions for real devices

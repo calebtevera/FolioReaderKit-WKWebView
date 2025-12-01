@@ -430,14 +430,15 @@ open class FolioReaderWebView: WKWebView {
     open func js(_ script: String, completion: @escaping JSCallback) {
         // Security: Validate JavaScript before execution
         guard validateJavaScript(script) else {
-            print("Security: Blocked potentially unsafe JavaScript execution")
+            print("⚠️ Security: Blocked JavaScript: \(String(script.prefix(100)))")
             completion(nil)
             return
         }
 
         self.evaluateJavaScript(script) { (result, error) in
             if let error = error {
-                print("JavaScript execution error: \(error.localizedDescription)")
+                print("❌ JavaScript execution error: \(error.localizedDescription)")
+                print("   Script: \(String(script.prefix(100)))")
                 completion(nil)
             } else {
                 completion(result as? String)
