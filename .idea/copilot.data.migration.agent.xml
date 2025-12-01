@@ -20,6 +20,7 @@
               <option value="07d00855-fe7d-49bc-9fe1-bf73c2a360de" />
               <option value="c2303685-9ba7-4154-9d02-37a8a11f73cf" />
               <option value="5aaaaef8-ec91-4e39-8b7f-64644b52d5b4" />
+              <option value="b4582134-883d-4d08-8b76-5c847a33f242" />
             </set>
           </value>
         </entry>
@@ -43,6 +44,7 @@
           <option value="file://$PROJECT_DIR$/Source/Models/Highlight+Helper.swift" />
           <option value="file://$PROJECT_DIR$/ALL_ERRORS_FIXED.md" />
           <option value="file://$PROJECT_DIR$/REALM_API_FIX.md" />
+          <option value="file://$PROJECT_DIR$/CRASH_FIX_NSUnknownKeyException.md" />
         </set>
       </entry>
     </pendingWorkingSetItems>

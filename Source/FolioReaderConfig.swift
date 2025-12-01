@@ -169,10 +169,9 @@ open class FolioReaderConfig: NSObject {
     // MARK: Realm
 
     /// Realm configuration for storing highlights
-    /// Security: Uses encrypted storage with unique encryption key per installation
+    /// Note: Encryption disabled for compatibility with existing databases
     open lazy var realmConfiguration: Realm.Configuration = {
         let config = Realm.Configuration(
-            encryptionKey: FolioReaderConfig.getOrCreateEncryptionKey(),
             schemaVersion: 2,
             shouldCompactOnLaunch: { totalBytes, usedBytes in
                 // Compact if file is over 100MB and less than 50% used
@@ -183,6 +182,11 @@ open class FolioReaderConfig: NSObject {
         return config
     }()
 
+    // MARK: - Encryption (Disabled for Compatibility)
+    // Note: Realm encryption is disabled to maintain compatibility with existing databases
+    // If you need encryption, enable this method and update realmConfiguration above
+
+    /*
     /// Security: Get or create encryption key for Realm database
     private static func getOrCreateEncryptionKey() -> Data {
         let keychainKey = "com.folioreader.realm.encryptionKey"
@@ -219,6 +223,7 @@ open class FolioReaderConfig: NSObject {
 
         return key
     }
+    */
 
     // MARK: Localized strings
 

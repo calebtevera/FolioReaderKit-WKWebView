@@ -477,6 +477,8 @@ open class FolioReaderWebView: WKWebView {
             "setFontName",
             "setFontSize",
             "getReadingTime",
+            "getAnchorOffset",
+            "audioMarkID",
             "wrappingSentencesWithinPTags",
             "setMediaOverlayStyleColors",
             "addClassBasedOnClickListener",
