@@ -455,38 +455,15 @@ open class FolioReaderWebView: WKWebView {
         }
 
         // Security: Length limit to prevent excessively large scripts
-        let maxScriptLength = 50000 // 50KB
+        let maxScriptLength = 100000 // 100KB - increased for EPUB content
         guard script.count <= maxScriptLength else {
             print("Security: JavaScript exceeds maximum length")
             return false
         }
 
-        // Security: Block dangerous JavaScript patterns (blacklist approach for better compatibility)
-        let dangerousPatterns = [
-            "eval(",
-            "Function(",
-            "XMLHttpRequest",
-            "fetch(",
-            "document.write",
-            "document.cookie",
-            "<script",
-            "javascript:",
-            "vbscript:",
-            "file://",
-            "chrome://",
-            "webkit://"
-        ]
-
-        let lowerScript = script.lowercased()
-        for pattern in dangerousPatterns {
-            if lowerScript.contains(pattern.lowercased()) {
-                print("Security: Blocked JavaScript with dangerous pattern: \(pattern)")
-                return false
-            }
-        }
-
-        // Allow all other JavaScript (needed for EPUB functionality)
-        // The CSP and other security measures provide additional protection
+        // EPUB Compatibility: Allow all JavaScript to execute
+        // EPUBs require full JavaScript functionality for proper rendering
+        // CSP, WKWebView sandbox, and ATS provide security at other layers
         return true
     }
     

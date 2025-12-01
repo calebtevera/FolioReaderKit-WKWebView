@@ -485,15 +485,14 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 
         let mediaOverlayStyleColors = "\"\(self.readerConfig.mediaOverlayColor.hexString(false))\", \"\(self.readerConfig.mediaOverlayColor.highlightColor().hexString(false))\""
 
-        // Security: Add Content Security Policy (Section 3)
+        // EPUB Compatibility: Permissive CSP for EPUB JavaScript
         let cspTag = """
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; \
-        script-src 'self' 'unsafe-inline' file:; \
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; \
-        font-src 'self' https://fonts.gstatic.com file: data:; \
-        img-src 'self' file: data:; \
-        media-src 'self' file:; \
-        connect-src 'none';">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data: blob:; \
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' file: data: blob:; \
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file: data:; \
+        font-src 'self' https://fonts.gstatic.com file: data: blob:; \
+        img-src 'self' file: data: blob: https:; \
+        media-src 'self' file: data: blob:;">
         """
 
         // Inject CSS
