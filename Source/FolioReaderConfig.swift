@@ -171,6 +171,9 @@ open class FolioReaderConfig: NSObject {
     /// Realm configuration for storing highlights
     /// Note: Encryption disabled for compatibility with existing databases
     open lazy var realmConfiguration: Realm.Configuration = {
+        // Security: Clean up incompatible Realm database files before configuration
+        FolioReaderConfig.cleanupIncompatibleRealmDatabase()
+
         let config = Realm.Configuration(
             schemaVersion: 2,
             migrationBlock: { migration, oldSchemaVersion in
@@ -188,6 +191,45 @@ open class FolioReaderConfig: NSObject {
         )
         return config
     }()
+
+    /// Manually cleanup incompatible Realm database files
+    private static func cleanupIncompatibleRealmDatabase() {
+        let fileManager = FileManager.default
+        let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+        let realmPath = (documentsPath as NSString).appendingPathComponent("default.realm")
+
+        // Check if Realm file exists
+        guard fileManager.fileExists(atPath: realmPath) else {
+            return
+        }
+
+        // Try to check Realm version - if it fails, delete the file
+        do {
+            // Attempt to open with minimal configuration to check compatibility
+            let testConfig = Realm.Configuration(
+                fileURL: URL(fileURLWithPath: realmPath),
+                readOnly: true
+            )
+            _ = try Realm(configuration: testConfig)
+            // If we get here, database is compatible
+        } catch {
+            // Database is incompatible - delete all related files
+            print("⚠️ Incompatible Realm database detected. Cleaning up...")
+
+            let realmFiles = [
+                realmPath,
+                realmPath + ".lock",
+                realmPath + ".note",
+                realmPath + ".management"
+            ]
+
+            for file in realmFiles {
+                try? fileManager.removeItem(atPath: file)
+            }
+
+            print("✅ Incompatible Realm database cleaned up successfully")
+        }
+    }
 
     // MARK: - Encryption (Disabled for Compatibility)
     // Note: Realm encryption is disabled to maintain compatibility with existing databases

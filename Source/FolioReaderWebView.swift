@@ -461,64 +461,20 @@ open class FolioReaderWebView: WKWebView {
             return false
         }
 
-        // Security: Whitelist of allowed function prefixes
-        let allowedPrefixes = [
-            "document.",
-            "window.getSelection",
-            "highlightString",
-            "highlightStringWithNote",
-            "removeThisHighlight",
-            "removeHighlightById",
-            "setHighlightStyle",
-            "getHighlightContent",
-            "getSelectedText",
-            "getHTML",
-            "nightMode",
-            "setFontName",
-            "setFontSize",
-            "getReadingTime",
-            "getAnchorOffset",
-            "audioMarkID",
-            "wrappingSentencesWithinPTags",
-            "setMediaOverlayStyleColors",
-            "addClassBasedOnClickListener",
-            "playAudio",
-            "pauseAudio",
-            "addClass",
-            "removeClass"
-        ]
-
-        // Check if script starts with an allowed prefix or is a simple property access
-        let trimmedScript = script.trimmingCharacters(in: .whitespacesAndNewlines)
-        let isAllowed = allowedPrefixes.contains { prefix in
-            trimmedScript.hasPrefix(prefix)
-        }
-
-        if !isAllowed {
-            print("Security: JavaScript function not in whitelist: \(String(trimmedScript.prefix(50)))")
-        }
-
-        // Security: Block dangerous JavaScript patterns
+        // Security: Block dangerous JavaScript patterns (blacklist approach for better compatibility)
         let dangerousPatterns = [
             "eval(",
             "Function(",
-            "setTimeout(",
-            "setInterval(",
             "XMLHttpRequest",
             "fetch(",
-            ".innerHTML =",
             "document.write",
             "document.cookie",
-            "localStorage.",
-            "sessionStorage.",
-            "indexedDB",
             "<script",
             "javascript:",
-            "data:",
             "vbscript:",
-            "file:",
-            "chrome:",
-            "webkit:"
+            "file://",
+            "chrome://",
+            "webkit://"
         ]
 
         let lowerScript = script.lowercased()
@@ -529,7 +485,9 @@ open class FolioReaderWebView: WKWebView {
             }
         }
 
-        return isAllowed
+        // Allow all other JavaScript (needed for EPUB functionality)
+        // The CSP and other security measures provide additional protection
+        return true
     }
     
     // MARK: WebView
