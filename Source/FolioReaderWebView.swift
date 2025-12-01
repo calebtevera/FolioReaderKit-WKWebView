@@ -75,19 +75,10 @@ open class FolioReaderWebView: WKWebView {
             configuration.defaultWebpagePreferences.preferredContentMode = .mobile
         }
 
-        // Real Device Fix: Enable local file access for EPUB resources
-        // This is critical for loading images and resources on real devices
-        if #available(iOS 9.0, *) {
-            configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-        }
-
         super.init(frame: frame, configuration: configuration)
 
-        // Real Device Fix: Additional configuration for local resource loading
-        if #available(iOS 11.0, *) {
-            // Allow access to local files (needed for EPUB content on real devices)
-            self.configuration.preferences.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
-        }
+        // Real Device Fix: Local file access is handled by loadFileURL(allowingReadAccessTo:)
+        // in FolioReaderPage.swift - no need for private API setValue calls here
     }
 
     required public init?(coder aDecoder: NSCoder) {
