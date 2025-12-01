@@ -28,6 +28,8 @@
               <option value="370f3e0d-26e8-4eb3-b63e-1199a1223af1" />
               <option value="24dedc23-693d-42c9-afb0-ab68f60bc6db" />
               <option value="2e964a7a-7582-4207-8a9e-2dd8158dc3f2" />
+              <option value="eddf3136-48c2-4952-a921-52277c53f226" />
+              <option value="d4034b94-7ce4-44ed-9073-8bb1cafd7dfd" />
             </set>
           </value>
         </entry>
@@ -58,6 +60,7 @@
           <option value="file://$PROJECT_DIR$/FINAL_RESOLUTION_COMPLETE.md" />
           <option value="file://$PROJECT_DIR$/EPUB_RENDERING_FIX.md" />
           <option value="file://$PROJECT_DIR$/JAVASCRIPT_ERROR_FIXED.md" />
+          <option value="file://$PROJECT_DIR$/SANDBOX_FILE_ACCESS_FIX.md" />
         </set>
       </entry>
     </pendingWorkingSetItems>
