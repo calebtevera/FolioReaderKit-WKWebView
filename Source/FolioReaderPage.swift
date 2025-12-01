@@ -144,95 +144,53 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         // Load the html into the webview
         webView?.alpha = 0
 
-        // Use standard loadHTMLString for better compatibility
-        // The baseURL parameter grants access to the directory
-        webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+        // Real device support: Use loadFileURL for proper file access on iOS 9+
+        if #available(iOS 9.0, *) {
+            loadHTMLWithProperFileAccess(tempHtmlContent, baseURL: baseURL)
+        } else {
+            // Fallback for older iOS
+            webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+        }
     }
 
-    /// Load HTML content with proper file access permissions for real devices
+    /// Load HTML with proper file access for real devices
     @available(iOS 9.0, *)
-    private func loadHTMLContentWithFileAccess(_ htmlContent: String, baseURL: URL) {
+    private func loadHTMLWithProperFileAccess(_ htmlContent: String, baseURL: URL) {
+        let fileManager = FileManager.default
+
+        // Ensure the directory exists and is readable
+        let directoryPath = baseURL.path
+        guard fileManager.fileExists(atPath: directoryPath) else {
+            print("⚠️ Base directory doesn't exist: \(directoryPath)")
+            webView?.loadHTMLString(htmlContent, baseURL: baseURL)
+            return
+        }
+
+        // Create a temporary HTML file in a writable location
+        let tempDir = fileManager.temporaryDirectory
+        let tempFileName = "folio_\(UUID().uuidString).html"
+        let tempFileURL = tempDir.appendingPathComponent(tempFileName)
+
         do {
-            // Real Device Fix: Preprocess HTML to fix image paths
-            let processedHTML = normalizeResourcePaths(in: htmlContent, baseURL: baseURL)
+            // Write HTML to temp file
+            try htmlContent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
-            // Create a temporary HTML file in the EPUB directory for proper file access
-            let tempDirectory = baseURL
-            let tempFileName = "temp_\(UUID().uuidString).html"
-            let tempFileURL = tempDirectory.appendingPathComponent(tempFileName)
+            // Load the temp file with read access to the EPUB directory
+            // This is the KEY to making images work on real devices
+            webView?.loadFileURL(tempFileURL, allowingReadAccessTo: baseURL)
 
-            // Write HTML content to temporary file
-            try processedHTML.write(to: tempFileURL, atomically: true, encoding: .utf8)
-
-            // Load the file with read access to its directory
-            // This grants WKWebView access to all resources in the EPUB directory
-            webView?.loadFileURL(tempFileURL, allowingReadAccessTo: tempDirectory)
-
-            // Schedule cleanup after a delay to allow loading
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                try? FileManager.default.removeItem(at: tempFileURL)
+            // Clean up temp file after a delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                try? fileManager.removeItem(at: tempFileURL)
             }
         } catch {
-            print("Failed to create temp HTML file, falling back to loadHTMLString: \(error)")
-            // Fallback to original method if temp file creation fails
+            print("⚠️ Failed to create temp HTML file: \(error)")
+            print("   Falling back to loadHTMLString")
+            // Fallback to standard method
             webView?.loadHTMLString(htmlContent, baseURL: baseURL)
         }
     }
 
-    /// Normalizes resource paths in HTML for proper loading on real devices
-    private func normalizeResourcePaths(in html: String, baseURL: URL) -> String {
-        var processedHTML = html
-
-        // Real Device Fix: Ensure all image sources use proper relative paths
-        // Handle case-sensitivity issues on real devices vs simulator
-
-        // Fix common path issues:
-        // 1. Remove leading slashes from relative paths
-        // 2. Normalize ../ paths
-        // 3. Ensure proper URL encoding
-
-        // Pattern to find img tags with src attributes
-        let imgPattern = "<img[^>]+src\\s*=\\s*['\"]([^'\"]+)['\"][^>]*>"
-        if let regex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive]) {
-            let range = NSRange(processedHTML.startIndex..., in: processedHTML)
-            let matches = regex.matches(in: processedHTML, range: range)
-
-            // Process matches in reverse to maintain string indices
-            for match in matches.reversed() {
-                if match.numberOfRanges >= 2 {
-                    let srcRange = match.range(at: 1)
-                    if let swiftRange = Range(srcRange, in: processedHTML) {
-                        let originalSrc = String(processedHTML[swiftRange])
-
-                        // Skip absolute URLs and data URIs
-                        if !originalSrc.hasPrefix("http") && !originalSrc.hasPrefix("data:") && !originalSrc.hasPrefix("file:") {
-                            // Real Device Fix: Normalize the path
-                            var normalizedSrc = originalSrc
-
-                            // Remove leading slashes for relative paths
-                            while normalizedSrc.hasPrefix("/") {
-                                normalizedSrc.removeFirst()
-                            }
-
-                            // Only replace if we made changes
-                            if normalizedSrc != originalSrc {
-                                processedHTML = processedHTML.replacingOccurrences(
-                                    of: "src=\"\(originalSrc)\"",
-                                    with: "src=\"\(normalizedSrc)\""
-                                )
-                                processedHTML = processedHTML.replacingOccurrences(
-                                    of: "src='\(originalSrc)'",
-                                    with: "src='\(normalizedSrc)'"
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return processedHTML
-    }
 
     // MARK: - Highlights
 
