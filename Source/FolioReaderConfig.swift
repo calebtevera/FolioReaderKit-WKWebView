@@ -172,8 +172,8 @@ open class FolioReaderConfig: NSObject {
     /// Security: Uses encrypted storage with unique encryption key per installation
     open lazy var realmConfiguration: Realm.Configuration = {
         let config = Realm.Configuration(
-            schemaVersion: 2,
             encryptionKey: FolioReaderConfig.getOrCreateEncryptionKey(),
+            schemaVersion: 2,
             shouldCompactOnLaunch: { totalBytes, usedBytes in
                 // Compact if file is over 100MB and less than 50% used
                 let oneHundredMB = 100 * 1024 * 1024
