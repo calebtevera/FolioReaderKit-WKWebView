@@ -166,17 +166,17 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
             return
         }
 
-        // Create a temporary HTML file in a writable location
-        let tempDir = fileManager.temporaryDirectory
-        let tempFileName = "folio_\(UUID().uuidString).html"
-        let tempFileURL = tempDir.appendingPathComponent(tempFileName)
+        // CRITICAL FIX: Create temp file INSIDE the EPUB directory, not in system temp
+        // This keeps everything in the same sandbox context
+        let tempFileName = ".folio_temp_\(UUID().uuidString).html"
+        let tempFileURL = baseURL.appendingPathComponent(tempFileName)
 
         do {
-            // Write HTML to temp file
+            // Write HTML to temp file in EPUB directory
             try htmlContent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
-            // Load the temp file with read access to the EPUB directory
-            // This is the KEY to making images work on real devices
+            // Load the temp file with read access to the parent directory
+            // Since temp file is inside EPUB dir, sandbox extension works correctly
             webView?.loadFileURL(tempFileURL, allowingReadAccessTo: baseURL)
 
             // Clean up temp file after a delay
