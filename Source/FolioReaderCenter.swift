@@ -535,7 +535,11 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
     /// Constructs proper baseURL for WKWebView resource loading on real devices
     private func constructBaseURL(for resource: FRResource) -> URL {
         // Get the directory containing the HTML file
-        let resourcePath = resource.fullHref
+        guard let resourcePath = resource.fullHref else {
+            // Fallback to documents directory if fullHref is nil
+            return URL(fileURLWithPath: kApplicationDocumentsDirectory, isDirectory: true)
+        }
+
         let directoryPath = (resourcePath as NSString).deletingLastPathComponent
 
         // Real Device Fix: Ensure proper file:// URL construction
