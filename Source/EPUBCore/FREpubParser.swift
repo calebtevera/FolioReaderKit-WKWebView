@@ -34,11 +34,62 @@ class FREpubParser: NSObject, SSZipArchiveDelegate {
                 throw FolioReaderError.coverNotAvailable
         }
 
+        // Security: Validate image path and size
+        try validateImagePath(coverImage.fullHref)
+
         guard let image = UIImage(contentsOfFile: coverImage.fullHref) else {
             throw FolioReaderError.invalidImage(path: coverImage.fullHref)
         }
 
+        // Security: Validate image format and dimensions
+        try validateImage(image)
+
         return image
+    }
+
+    // MARK: - Security Validation Methods
+
+    /// Validates image file path and size before loading
+    private func validateImagePath(_ path: String) throws {
+        let fileManager = FileManager.default
+
+        // Validate file exists
+        guard fileManager.fileExists(atPath: path) else {
+            throw FolioReaderError.invalidImage(path: path)
+        }
+
+        // Get file attributes
+        guard let attributes = try? fileManager.attributesOfItem(atPath: path),
+              let fileSize = attributes[.size] as? Int64 else {
+            throw FolioReaderError.invalidImage(path: path)
+        }
+
+        // Security: Enforce maximum image size (10MB)
+        let maxImageSize: Int64 = 10 * 1024 * 1024
+        guard fileSize <= maxImageSize else {
+            throw FolioReaderError.invalidImage(path: "Image file too large: \(fileSize) bytes")
+        }
+
+        // Security: Validate file extension
+        let validExtensions = ["jpg", "jpeg", "png", "gif", "svg", "webp"]
+        let fileExtension = (path as NSString).pathExtension.lowercased()
+        guard validExtensions.contains(fileExtension) else {
+            throw FolioReaderError.invalidImage(path: "Invalid image format: \(fileExtension)")
+        }
+    }
+
+    /// Validates image dimensions and format
+    private func validateImage(_ image: UIImage) throws {
+        // Security: Enforce maximum image dimensions to prevent memory exhaustion
+        let maxDimension: CGFloat = 4096
+        guard image.size.width <= maxDimension && image.size.height <= maxDimension else {
+            throw FolioReaderError.invalidImage(path: "Image dimensions too large: \(image.size)")
+        }
+
+        // Validate image has valid data
+        guard image.cgImage != nil || image.ciImage != nil else {
+            throw FolioReaderError.invalidImage(path: "Invalid image data")
+        }
     }
 
     /// Parse the book title from an epub file.
@@ -84,6 +135,9 @@ class FREpubParser: NSObject, SSZipArchiveDelegate {
 
         var isDir: ObjCBool = false
         let fileManager = FileManager.default
+
+        // Security: Validate EPUB file before processing
+        try validateEPUBFile(withEpubPath)
         let bookName = withEpubPath.lastPathComponent
         var bookBasePath = ""
 
@@ -103,8 +157,12 @@ class FREpubParser: NSObject, SSZipArchiveDelegate {
         let needsUnzip = !fileManager.fileExists(atPath: bookBasePath, isDirectory:&isDir) || !isDir.boolValue
 
         if needsUnzip {
-            SSZipArchive.unzipFile(atPath: withEpubPath, toDestination: bookBasePath, delegate: self)
+            // Security: Use secure extraction with validation
+            try secureUnzipEPUB(from: withEpubPath, to: bookBasePath)
         }
+
+        // Security: Validate extracted content
+        try validateExtractedContent(at: bookBasePath)
 
         // Skip from backup this folder
         try addSkipBackupAttributeToItemAtURL(URL(fileURLWithPath: bookBasePath, isDirectory: true))
@@ -484,5 +542,109 @@ class FREpubParser: NSObject, SSZipArchiveDelegate {
         guard shouldRemoveEpub else { return }
         guard let epubPathToRemove = epubPathToRemove else { return }
         try? FileManager.default.removeItem(atPath: epubPathToRemove)
+    }
+
+    // MARK: - Security Validation Methods (Section 8)
+
+    /// Validates EPUB file before processing
+    private func validateEPUBFile(_ epubPath: String) throws {
+        let fileManager = FileManager.default
+
+        // Validate file exists
+        guard fileManager.fileExists(atPath: epubPath) else {
+            throw FolioReaderError.bookNotAvailable
+        }
+
+        // Security: Get file size
+        guard let attributes = try? fileManager.attributesOfItem(atPath: epubPath),
+              let fileSize = attributes[.size] as? Int64 else {
+            throw FolioReaderError.bookNotAvailable
+        }
+
+        // Security: Enforce maximum EPUB size (100MB)
+        let maxEPUBSize: Int64 = 100 * 1024 * 1024
+        guard fileSize > 0 && fileSize <= maxEPUBSize else {
+            throw FolioReaderError.bookNotAvailable
+        }
+
+        // Security: Validate file extension
+        let fileExtension = (epubPath as NSString).pathExtension.lowercased()
+        guard fileExtension == "epub" else {
+            throw FolioReaderError.bookNotAvailable
+        }
+
+        // Security: Validate path doesn't contain traversal attempts
+        let normalizedPath = (epubPath as NSString).standardizingPath
+        guard !normalizedPath.contains("../") && !normalizedPath.contains("..\\") else {
+            throw FolioReaderError.bookNotAvailable
+        }
+    }
+
+    /// Securely extracts EPUB with path validation
+    private func secureUnzipEPUB(from sourcePath: String, to destinationPath: String) throws {
+        let fileManager = FileManager.default
+
+        // Security: Validate destination path
+        let normalizedDest = (destinationPath as NSString).standardizingPath
+        guard normalizedDest.hasPrefix(kApplicationDocumentsDirectory) ||
+              normalizedDest.hasPrefix(NSTemporaryDirectory()) else {
+            throw FolioReaderError.bookNotAvailable
+        }
+
+        // Create destination directory with secure attributes
+        if !fileManager.fileExists(atPath: destinationPath) {
+            try fileManager.createDirectory(atPath: destinationPath,
+                                          withIntermediateDirectories: true,
+                                          attributes: [.protectionKey: FileProtectionType.complete])
+        }
+
+        // Perform extraction
+        SSZipArchive.unzipFile(atPath: sourcePath, toDestination: destinationPath, delegate: self)
+    }
+
+    /// Validates extracted EPUB content for security
+    private func validateExtractedContent(at path: String) throws {
+        let fileManager = FileManager.default
+
+        // Security: Validate path
+        guard fileManager.fileExists(atPath: path) else {
+            throw FolioReaderError.errorInContainer
+        }
+
+        // Security: Calculate total extracted size
+        var totalSize: Int64 = 0
+        let maxTotalSize: Int64 = 150 * 1024 * 1024 // 150MB extracted limit
+
+        if let enumerator = fileManager.enumerator(atPath: path) {
+            while let file = enumerator.nextObject() as? String {
+                let filePath = (path as NSString).appendingPathComponent(file)
+
+                // Security: Validate no path traversal in extracted files
+                let normalizedPath = (filePath as NSString).standardizingPath
+                guard normalizedPath.hasPrefix((path as NSString).standardizingPath) else {
+                    // Found path traversal attempt - clean up and abort
+                    try? fileManager.removeItem(atPath: path)
+                    throw FolioReaderError.errorInContainer
+                }
+
+                // Check file size
+                if let attributes = try? fileManager.attributesOfItem(atPath: filePath),
+                   let fileSize = attributes[.size] as? Int64 {
+                    totalSize += fileSize
+
+                    // Security: Detect ZIP bomb
+                    guard totalSize <= maxTotalSize else {
+                        try? fileManager.removeItem(atPath: path)
+                        throw FolioReaderError.errorInContainer
+                    }
+                }
+            }
+        }
+
+        // Security: Validate required EPUB structure
+        let containerPath = (path as NSString).appendingPathComponent("META-INF/container.xml")
+        guard fileManager.fileExists(atPath: containerPath) else {
+            throw FolioReaderError.errorInContainer
+        }
     }
 }

@@ -38,13 +38,56 @@ open class FolioReaderWebView: WKWebView {
         self.readerContainer = readerContainer
         
         let configuration = WKWebViewConfiguration()
+
+        // Security: Configure data detectors
         if #available(iOS 10.0, *) {
             configuration.dataDetectorTypes = .link
         } else {
             // Fallback on earlier versions
             assertionFailure("unsupported iOS version")
         }
+
+        // Security: Restrict media playback - require user action for all media
+        if #available(iOS 10.0, *) {
+            configuration.mediaTypesRequiringUserActionForPlayback = .all
+        } else {
+            configuration.requiresUserActionForMediaPlayback = true
+        }
+
+        // Security: Control inline media playback
+        configuration.allowsInlineMediaPlayback = false
+
+        // Security: Disable picture-in-picture for better control
+        if #available(iOS 9.0, *) {
+            configuration.allowsPictureInPictureMediaPlayback = false
+        }
+
+        // Security: Configure preferences
+        let preferences = WKPreferences()
+        // Note: JavaScript is required for EPUB functionality
+        // Additional JS validation is handled in the js() method
+        preferences.javaScriptEnabled = true
+        preferences.javaScriptCanOpenWindowsAutomatically = false
+        configuration.preferences = preferences
+
+        // Security: Disable web page preview
+        if #available(iOS 13.0, *) {
+            configuration.defaultWebpagePreferences.preferredContentMode = .mobile
+        }
+
+        // Real Device Fix: Enable local file access for EPUB resources
+        // This is critical for loading images and resources on real devices
+        if #available(iOS 9.0, *) {
+            configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        }
+
         super.init(frame: frame, configuration: configuration)
+
+        // Real Device Fix: Additional configuration for local resource loading
+        if #available(iOS 11.0, *) {
+            // Allow access to local files (needed for EPUB content on real devices)
+            self.configuration.preferences.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        }
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -394,11 +437,106 @@ open class FolioReaderWebView: WKWebView {
     // MARK: - Java Script Bridge
     
     open func js(_ script: String, completion: @escaping JSCallback) {
-        
-        self.evaluateJavaScript(script) { (result, error) in
-            completion(result as? String)
+        // Security: Validate JavaScript before execution
+        guard validateJavaScript(script) else {
+            print("Security: Blocked potentially unsafe JavaScript execution")
+            completion(nil)
+            return
         }
 
+        self.evaluateJavaScript(script) { (result, error) in
+            if let error = error {
+                print("JavaScript execution error: \(error.localizedDescription)")
+                completion(nil)
+            } else {
+                completion(result as? String)
+            }
+        }
+    }
+
+    // MARK: - Security Methods (Section 3)
+
+    /// Validates JavaScript code before execution
+    private func validateJavaScript(_ script: String) -> Bool {
+        // Security: Check for empty or whitespace-only scripts
+        guard !script.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return false
+        }
+
+        // Security: Length limit to prevent excessively large scripts
+        let maxScriptLength = 50000 // 50KB
+        guard script.count <= maxScriptLength else {
+            print("Security: JavaScript exceeds maximum length")
+            return false
+        }
+
+        // Security: Whitelist of allowed function prefixes
+        let allowedPrefixes = [
+            "document.",
+            "window.getSelection",
+            "highlightString",
+            "highlightStringWithNote",
+            "removeThisHighlight",
+            "removeHighlightById",
+            "setHighlightStyle",
+            "getHighlightContent",
+            "getSelectedText",
+            "getHTML",
+            "nightMode",
+            "setFontName",
+            "setFontSize",
+            "getReadingTime",
+            "wrappingSentencesWithinPTags",
+            "setMediaOverlayStyleColors",
+            "addClassBasedOnClickListener",
+            "playAudio",
+            "pauseAudio",
+            "addClass",
+            "removeClass"
+        ]
+
+        // Check if script starts with an allowed prefix or is a simple property access
+        let trimmedScript = script.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isAllowed = allowedPrefixes.contains { prefix in
+            trimmedScript.hasPrefix(prefix)
+        }
+
+        if !isAllowed {
+            print("Security: JavaScript function not in whitelist: \(String(trimmedScript.prefix(50)))")
+        }
+
+        // Security: Block dangerous JavaScript patterns
+        let dangerousPatterns = [
+            "eval(",
+            "Function(",
+            "setTimeout(",
+            "setInterval(",
+            "XMLHttpRequest",
+            "fetch(",
+            ".innerHTML =",
+            "document.write",
+            "document.cookie",
+            "localStorage.",
+            "sessionStorage.",
+            "indexedDB",
+            "<script",
+            "javascript:",
+            "data:",
+            "vbscript:",
+            "file:",
+            "chrome:",
+            "webkit:"
+        ]
+
+        let lowerScript = script.lowercased()
+        for pattern in dangerousPatterns {
+            if lowerScript.contains(pattern.lowercased()) {
+                print("Security: Blocked JavaScript with dangerous pattern: \(pattern)")
+                return false
+            }
+        }
+
+        return isAllowed
     }
     
     // MARK: WebView

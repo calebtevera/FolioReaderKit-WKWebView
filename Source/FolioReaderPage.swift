@@ -143,7 +143,100 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         let tempHtmlContent = htmlContentWithInsertHighlights(htmlContent)
         // Load the html into the webview
         webView?.alpha = 0
-        webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+
+        // Real Device Fix: Use proper loading method for local files
+        if #available(iOS 9.0, *) {
+            // Write HTML to temp file and use loadFileURL for proper file access on real devices
+            loadHTMLContentWithFileAccess(tempHtmlContent, baseURL: baseURL)
+        } else {
+            // Fallback for older iOS versions
+            webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
+        }
+    }
+
+    /// Load HTML content with proper file access permissions for real devices
+    @available(iOS 9.0, *)
+    private func loadHTMLContentWithFileAccess(_ htmlContent: String, baseURL: URL) {
+        do {
+            // Real Device Fix: Preprocess HTML to fix image paths
+            let processedHTML = normalizeResourcePaths(in: htmlContent, baseURL: baseURL)
+
+            // Create a temporary HTML file in the EPUB directory for proper file access
+            let tempDirectory = baseURL
+            let tempFileName = "temp_\(UUID().uuidString).html"
+            let tempFileURL = tempDirectory.appendingPathComponent(tempFileName)
+
+            // Write HTML content to temporary file
+            try processedHTML.write(to: tempFileURL, atomically: true, encoding: .utf8)
+
+            // Load the file with read access to its directory
+            // This grants WKWebView access to all resources in the EPUB directory
+            webView?.loadFileURL(tempFileURL, allowingReadAccessTo: tempDirectory)
+
+            // Schedule cleanup after a delay to allow loading
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                try? FileManager.default.removeItem(at: tempFileURL)
+            }
+        } catch {
+            print("Failed to create temp HTML file, falling back to loadHTMLString: \(error)")
+            // Fallback to original method if temp file creation fails
+            webView?.loadHTMLString(htmlContent, baseURL: baseURL)
+        }
+    }
+
+    /// Normalizes resource paths in HTML for proper loading on real devices
+    private func normalizeResourcePaths(in html: String, baseURL: URL) -> String {
+        var processedHTML = html
+
+        // Real Device Fix: Ensure all image sources use proper relative paths
+        // Handle case-sensitivity issues on real devices vs simulator
+
+        // Fix common path issues:
+        // 1. Remove leading slashes from relative paths
+        // 2. Normalize ../ paths
+        // 3. Ensure proper URL encoding
+
+        // Pattern to find img tags with src attributes
+        let imgPattern = "<img[^>]+src\\s*=\\s*['\"]([^'\"]+)['\"][^>]*>"
+        if let regex = try? NSRegularExpression(pattern: imgPattern, options: [.caseInsensitive]) {
+            let range = NSRange(processedHTML.startIndex..., in: processedHTML)
+            let matches = regex.matches(in: processedHTML, range: range)
+
+            // Process matches in reverse to maintain string indices
+            for match in matches.reversed() {
+                if match.numberOfRanges >= 2 {
+                    let srcRange = match.range(at: 1)
+                    if let swiftRange = Range(srcRange, in: processedHTML) {
+                        let originalSrc = String(processedHTML[swiftRange])
+
+                        // Skip absolute URLs and data URIs
+                        if !originalSrc.hasPrefix("http") && !originalSrc.hasPrefix("data:") && !originalSrc.hasPrefix("file:") {
+                            // Real Device Fix: Normalize the path
+                            var normalizedSrc = originalSrc
+
+                            // Remove leading slashes for relative paths
+                            while normalizedSrc.hasPrefix("/") {
+                                normalizedSrc.removeFirst()
+                            }
+
+                            // Only replace if we made changes
+                            if normalizedSrc != originalSrc {
+                                processedHTML = processedHTML.replacingOccurrences(
+                                    of: "src=\"\(originalSrc)\"",
+                                    with: "src=\"\(normalizedSrc)\""
+                                )
+                                processedHTML = processedHTML.replacingOccurrences(
+                                    of: "src='\(originalSrc)'",
+                                    with: "src='\(normalizedSrc)'"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return processedHTML
     }
 
     // MARK: - Highlights
@@ -356,9 +449,18 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
             }
             
             if isClassBasedOnClickListenerScheme == false {
-                // Try to open the url with the system if it wasn't a custom class based click listener
-                if UIApplication.shared.canOpenURL(url) {
-                    UIApplication.shared.openURL(url)
+                // Security: Validate URL before opening
+                if validateExternalURL(url) {
+                    // Use modern API instead of deprecated openURL
+                    if #available(iOS 10.0, *) {
+                        UIApplication.shared.open(url, options: [:]) { success in
+                            if !success {
+                                print("Failed to open URL: \(url)")
+                            }
+                        }
+                    } else {
+                        UIApplication.shared.openURL(url)
+                    }
                     decisionHandler(WKNavigationActionPolicy.cancel)
                     return
                 }
@@ -371,7 +473,67 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         decisionHandler(WKNavigationActionPolicy.allow)
         
     }
-   
+
+    // MARK: - Security Methods (Section 3)
+
+    /// Validates external URLs before opening with security checks
+    private func validateExternalURL(_ url: URL) -> Bool {
+        // Security: Whitelist of allowed URL schemes
+        let allowedSchemes = ["http", "https", "mailto", "tel", "sms"]
+
+        guard let scheme = url.scheme?.lowercased(),
+              allowedSchemes.contains(scheme) else {
+            print("Security: Blocked URL with disallowed scheme: \(url)")
+            return false
+        }
+
+        // Security: Block suspicious patterns
+        let urlString = url.absoluteString.lowercased()
+        let blockedPatterns = [
+            "javascript:",
+            "data:",
+            "file:",
+            "vbscript:",
+            "about:",
+            "<script",
+            "onclick",
+            "onerror"
+        ]
+
+        for pattern in blockedPatterns {
+            if urlString.contains(pattern) {
+                print("Security: Blocked URL with suspicious pattern: \(pattern)")
+                return false
+            }
+        }
+
+        // Security: Validate URL can be opened
+        guard UIApplication.shared.canOpenURL(url) else {
+            return false
+        }
+
+        // Security: For HTTP/HTTPS, validate host exists
+        if scheme == "http" || scheme == "https" {
+            guard url.host != nil, !url.host!.isEmpty else {
+                print("Security: Blocked URL with invalid host")
+                return false
+            }
+
+            // Security: Block local network addresses for external links
+            let blockedHosts = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]
+            if let host = url.host?.lowercased() {
+                for blockedHost in blockedHosts {
+                    if host.contains(blockedHost) {
+                        print("Security: Blocked URL to local host: \(host)")
+                        return false
+                    }
+                }
+            }
+        }
+
+        return true
+    }
+
     fileprivate func getEventTouchPoint(fromPositionParameterString positionParameterString: String) -> CGPoint? {
         // Remove the parameter names: "/clientX=188&clientY=292" -> "188&292"
         var positionParameterString = positionParameterString.replacingOccurrences(of: "/clientX=", with: "")

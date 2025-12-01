@@ -169,7 +169,56 @@ open class FolioReaderConfig: NSObject {
     // MARK: Realm
 
     /// Realm configuration for storing highlights
-    open var realmConfiguration         = Realm.Configuration(schemaVersion: 2)
+    /// Security: Uses encrypted storage with unique encryption key per installation
+    open lazy var realmConfiguration: Realm.Configuration = {
+        let config = Realm.Configuration(
+            schemaVersion: 2,
+            encryptionKey: FolioReaderConfig.getOrCreateEncryptionKey(),
+            shouldCompactOnLaunch: { totalBytes, usedBytes in
+                // Compact if file is over 100MB and less than 50% used
+                let oneHundredMB = 100 * 1024 * 1024
+                return (totalBytes > oneHundredMB) && (Double(usedBytes) / Double(totalBytes)) < 0.5
+            }
+        )
+        return config
+    }()
+
+    /// Security: Get or create encryption key for Realm database
+    private static func getOrCreateEncryptionKey() -> Data {
+        let keychainKey = "com.folioreader.realm.encryptionKey"
+
+        // Try to retrieve existing key from Keychain
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keychainKey,
+            kSecReturnData as String: true
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        if status == errSecSuccess, let keyData = result as? Data {
+            return keyData
+        }
+
+        // Generate new 64-byte encryption key
+        var key = Data(count: 64)
+        _ = key.withUnsafeMutableBytes { bytes in
+            SecRandomCopyBytes(kSecRandomDefault, 64, bytes.baseAddress!)
+        }
+
+        // Store key in Keychain
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keychainKey,
+            kSecValueData as String: key,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+
+        SecItemAdd(addQuery as CFDictionary, nil)
+
+        return key
+    }
 
     // MARK: Localized strings
 

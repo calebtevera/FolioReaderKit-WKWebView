@@ -473,11 +473,28 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 
         // Configure the cell
         let resource = self.book.spine.spineReferences[indexPath.row].resource
+
+        // Security: Validate resource path before loading
+        guard validateResourcePath(resource.fullHref) else {
+            return cell
+        }
+
         guard var html = try? String(contentsOfFile: resource.fullHref, encoding: String.Encoding.utf8) else {
             return cell
         }
 
         let mediaOverlayStyleColors = "\"\(self.readerConfig.mediaOverlayColor.hexString(false))\", \"\(self.readerConfig.mediaOverlayColor.highlightColor().hexString(false))\""
+
+        // Security: Add Content Security Policy (Section 3)
+        let cspTag = """
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; \
+        script-src 'self' 'unsafe-inline' file:; \
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com file:; \
+        font-src 'self' https://fonts.gstatic.com file: data:; \
+        img-src 'self' file: data:; \
+        media-src 'self' file:; \
+        connect-src 'none';">
+        """
 
         // Inject CSS
         let jsFilePath = Bundle.frameworkBundle().path(forResource: "Bridge", ofType: "js")
@@ -487,7 +504,7 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         let jsTag = "<script type=\"text/javascript\" src=\"\(jsFilePath!)\"></script>" +
         "<script type=\"text/javascript\">setMediaOverlayStyleColors(\(mediaOverlayStyleColors))</script>"
 
-        let toInject = "\n\(cssTag)\n\(jsTag)\n\(googleFonts)\n</head>"
+        let toInject = "\n\(cspTag)\n\(cssTag)\n\(jsTag)\n\(googleFonts)\n</head>"
         html = html.replacingOccurrences(of: "</head>", with: toInject)
 
         // Font class name
@@ -509,8 +526,23 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
             html = modifiedHtmlContent
         }
 
-        cell.loadHTMLString(html, baseURL: URL(fileURLWithPath: resource.fullHref.deletingLastPathComponent))
+        // Real Device Fix: Properly construct baseURL for resource loading
+        let baseURL = constructBaseURL(for: resource)
+        cell.loadHTMLString(html, baseURL: baseURL)
         return cell
+    }
+
+    /// Constructs proper baseURL for WKWebView resource loading on real devices
+    private func constructBaseURL(for resource: FRResource) -> URL {
+        // Get the directory containing the HTML file
+        let resourcePath = resource.fullHref
+        let directoryPath = (resourcePath as NSString).deletingLastPathComponent
+
+        // Real Device Fix: Ensure proper file:// URL construction
+        // This is critical for WKWebView to load images on real devices
+        let baseURL = URL(fileURLWithPath: directoryPath, isDirectory: true)
+
+        return baseURL
     }
 
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -1525,4 +1557,39 @@ extension FolioReaderCenter: FolioReaderChapterListDelegate {
         return bounds
     }
     
+    // MARK: - Security Methods (Section 4)
+
+    /// Validates resource path to prevent unauthorized file access
+    private func validateResourcePath(_ path: String) -> Bool {
+        // Security: Normalize path
+        let normalizedPath = (path as NSString).standardizingPath
+
+        // Security: Check for path traversal attempts
+        guard !normalizedPath.contains("../") && !normalizedPath.contains("..\\") else {
+            return false
+        }
+
+        // Security: Ensure path is within allowed directories
+        let allowedPaths = [
+            kApplicationDocumentsDirectory,
+            NSTemporaryDirectory(),
+            Bundle.main.bundlePath
+        ]
+
+        let isAllowed = allowedPaths.contains { allowedPath in
+            normalizedPath.hasPrefix((allowedPath as NSString).standardizingPath)
+        }
+
+        guard isAllowed else {
+            return false
+        }
+
+        // Security: Verify file exists
+        guard FileManager.default.fileExists(atPath: normalizedPath) else {
+            return false
+        }
+
+        return true
+    }
+
 }
