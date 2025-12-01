@@ -21,6 +21,7 @@
               <option value="c2303685-9ba7-4154-9d02-37a8a11f73cf" />
               <option value="5aaaaef8-ec91-4e39-8b7f-64644b52d5b4" />
               <option value="b4582134-883d-4d08-8b76-5c847a33f242" />
+              <option value="fce63e08-eecf-40b7-870c-226ecd01057e" />
             </set>
           </value>
         </entry>
@@ -45,6 +46,7 @@
           <option value="file://$PROJECT_DIR$/ALL_ERRORS_FIXED.md" />
           <option value="file://$PROJECT_DIR$/REALM_API_FIX.md" />
           <option value="file://$PROJECT_DIR$/CRASH_FIX_NSUnknownKeyException.md" />
+          <option value="file://$PROJECT_DIR$/CONTENT_NOT_SHOWING_FIX.md" />
         </set>
       </entry>
     </pendingWorkingSetItems>

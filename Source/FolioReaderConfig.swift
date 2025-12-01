@@ -173,6 +173,13 @@ open class FolioReaderConfig: NSObject {
     open lazy var realmConfiguration: Realm.Configuration = {
         let config = Realm.Configuration(
             schemaVersion: 2,
+            migrationBlock: { migration, oldSchemaVersion in
+                // Automatic migration for schema changes
+                if oldSchemaVersion < 2 {
+                    // Handle any migration if needed
+                }
+            },
+            deleteRealmIfMigrationNeeded: true, // Delete and recreate if version incompatible
             shouldCompactOnLaunch: { totalBytes, usedBytes in
                 // Compact if file is over 100MB and less than 50% used
                 let oneHundredMB = 100 * 1024 * 1024
