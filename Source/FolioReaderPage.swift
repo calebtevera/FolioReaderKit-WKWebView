@@ -144,51 +144,9 @@ open class FolioReaderPage: UICollectionViewCell, WKNavigationDelegate, UIGestur
         // Load the html into the webview
         webView?.alpha = 0
 
-        // Real device support: Use loadFileURL for proper file access on iOS 9+
-        if #available(iOS 9.0, *) {
-            loadHTMLWithProperFileAccess(tempHtmlContent, baseURL: baseURL)
-        } else {
-            // Fallback for older iOS
-            webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
-        }
-    }
-
-    /// Load HTML with proper file access for real devices
-    @available(iOS 9.0, *)
-    private func loadHTMLWithProperFileAccess(_ htmlContent: String, baseURL: URL) {
-        let fileManager = FileManager.default
-
-        // Ensure the directory exists and is readable
-        let directoryPath = baseURL.path
-        guard fileManager.fileExists(atPath: directoryPath) else {
-            print("⚠️ Base directory doesn't exist: \(directoryPath)")
-            webView?.loadHTMLString(htmlContent, baseURL: baseURL)
-            return
-        }
-
-        // CRITICAL FIX: Create temp file INSIDE the EPUB directory, not in system temp
-        // This keeps everything in the same sandbox context
-        let tempFileName = ".folio_temp_\(UUID().uuidString).html"
-        let tempFileURL = baseURL.appendingPathComponent(tempFileName)
-
-        do {
-            // Write HTML to temp file in EPUB directory
-            try htmlContent.write(to: tempFileURL, atomically: true, encoding: .utf8)
-
-            // Load the temp file with read access to the parent directory
-            // Since temp file is inside EPUB dir, sandbox extension works correctly
-            webView?.loadFileURL(tempFileURL, allowingReadAccessTo: baseURL)
-
-            // Clean up temp file after a delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                try? fileManager.removeItem(at: tempFileURL)
-            }
-        } catch {
-            print("⚠️ Failed to create temp HTML file: \(error)")
-            print("   Falling back to loadHTMLString")
-            // Fallback to standard method
-            webView?.loadHTMLString(htmlContent, baseURL: baseURL)
-        }
+        // Use standard loadHTMLString with baseURL
+        // The baseURL parameter provides sufficient access for resource loading
+        webView?.loadHTMLString(tempHtmlContent, baseURL: baseURL)
     }
 
 

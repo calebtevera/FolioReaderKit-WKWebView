@@ -30,6 +30,7 @@
               <option value="2e964a7a-7582-4207-8a9e-2dd8158dc3f2" />
               <option value="eddf3136-48c2-4952-a921-52277c53f226" />
               <option value="d4034b94-7ce4-44ed-9073-8bb1cafd7dfd" />
+              <option value="7c848572-af13-4263-8275-cc531356ae66" />
             </set>
           </value>
         </entry>
@@ -61,6 +62,7 @@
           <option value="file://$PROJECT_DIR$/EPUB_RENDERING_FIX.md" />
           <option value="file://$PROJECT_DIR$/JAVASCRIPT_ERROR_FIXED.md" />
           <option value="file://$PROJECT_DIR$/SANDBOX_FILE_ACCESS_FIX.md" />
+          <option value="file://$PROJECT_DIR$/SANDBOX_EXTENSION_FIXED.md" />
         </set>
       </entry>
     </pendingWorkingSetItems>
